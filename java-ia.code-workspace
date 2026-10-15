@@ -1,0 +1,45 @@
+{
+  "folders": [
+    { "name": "projet1 - Quiz", "path": "projet1" },
+    { "name": "projet2 - Tâches", "path": "projet2" },
+    { "name": "projet3 - Chatbot", "path": "projet3" }
+  ],
+  "settings": {
+    "java.jdt.ls.java.home": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1",
+    "java.configuration.runtimes": [
+      { "name": "JavaSE-21", "path": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1", "default": true }
+    ],
+    "maven.executable.path": "C:\\Users\\hkounou\\tools\\apache-maven-3.9.9\\bin\\mvn.cmd",
+    "files.encoding": "utf8"
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "java",
+        "name": "Projet 1 - Quiz",
+        "request": "launch",
+        "mainClass": "quiz.Quiz",
+        "cwd": "${workspaceFolder:projet1 - Quiz}",
+        "console": "integratedTerminal"
+      },
+      {
+        "type": "java",
+        "name": "Projet 2 - Tâches",
+        "request": "launch",
+        "mainClass": "taches.Main",
+        "cwd": "${workspaceFolder:projet2 - Tâches}",
+        "console": "integratedTerminal"
+      },
+      {
+        "type": "java",
+        "name": "Projet 3 - Chatbot",
+        "request": "launch",
+        "mainClass": "chatbot.Main",
+        "cwd": "${workspaceFolder:projet3 - Chatbot}",
+        "console": "integratedTerminal",
+        "envFile": "${workspaceFolder:projet3 - Chatbot}/.env"
+      }
+    ]
+  }
+}

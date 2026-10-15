@@ -1,0 +1,10 @@
+out/
+target/
+bin/
+.idea/
+*.iml
+.vscode/
+.env
+*.class
+taches.txt
+conversation-*.txt
