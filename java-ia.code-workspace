@@ -5,16 +5,7 @@
     { "name": "projet3 - Chatbot", "path": "projet3" }
   ],
   "settings": {
-    "java.jdt.ls.java.home": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1",
-    "java.configuration.runtimes": [
-      { "name": "JavaSE-21", "path": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1", "default": true }
-    ],
-    "maven.executable.path": "C:\\Users\\hkounou\\tools\\apache-maven-3.9.9\\bin\\mvn.cmd",
-    "files.encoding": "utf8",
-    "terminal.integrated.env.windows": {
-      "JAVA_HOME": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1",
-      "PATH": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1\\bin;C:\\Users\\hkounou\\tools\\apache-maven-3.9.9\\bin;${env:PATH}"
-    }
+    "files.encoding": "utf8"
   },
   "launch": {
     "version": "0.2.0",

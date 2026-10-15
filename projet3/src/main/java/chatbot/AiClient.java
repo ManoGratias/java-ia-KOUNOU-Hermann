@@ -6,8 +6,11 @@ package chatbot;
  */
 public interface AiClient {
 
-    /** Envoie la question et renvoie le texte de la réponse. */
-    String ask(String question) throws AiException;
+    /**
+     * Envoie la question et renvoie le texte de la réponse.
+     * En cas de problème (réseau, clé invalide, statut HTTP différent de 200), lève une AiException.
+     */
+    String ask(String question);
 
     /** Oublie l'historique de la conversation. Par défaut : rien à oublier. */
     default void reset() {

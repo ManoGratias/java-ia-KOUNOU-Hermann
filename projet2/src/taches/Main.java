@@ -20,6 +20,10 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in, encodageClavier());
     private static boolean entreeFermee = false;
 
+    // Prédiction (avant de lancer) : premier lancement => "0 tâche(s) chargée(s)" sans erreur ;
+    // "abc" ou "99" comme numéro => message d'erreur, pas de plantage ; en quittant, taches.txt est créé
+    // et la tâche est encore là au lancement suivant. Une ligne corrompue dans le fichier est ignorée avec un avertissement.
+    // Résultat observé : conforme.
     public static void main(String[] args) {
         FichierTaches fichier = new FichierTaches(FICHIER);
         charger(fichier);

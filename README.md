@@ -28,7 +28,8 @@ cd projet3; mvn -q compile exec:java "-Dexec.mainClass=chatbot.ChatFenetre"   # 
 les lancements *Run and Debug* la lisent automatiquement. Dans un terminal : `$env:AI_API_KEY="gsk_..."` avant `mvn`.
 Le `.env` est ignoré par Git. Sans clé, le chatbot fonctionne en mode hors-ligne (`MockAiClient`).
 
-Chaque projet a un `README.md` avec les réponses aux points de contrôle.
+Chaque projet a un `README.md` avec les réponses aux points de contrôle. Les explications demandées à l'IA sont dans
+`ECHANGES_IA.md`, le bilan dans `NOTES.md`.
 
 ### Bonus : versions avec fenêtres (Swing)
 
@@ -130,7 +131,7 @@ bin/
 
 - [ ] Fais proposer par l'IA les classes à créer **avant** de coder (temps 1)
 - [ ] Fais générer tes 5 questions par l'IA, puis **vérifie toi-même** la réponse d'au moins une
-- [ ] Demande-lui d'expliquer `Scanner`, `trim()` et `equalsIgnoreCase()` avec un exemple chacun
+- [x] Demande-lui d'expliquer `Scanner`, `trim()` et `equalsIgnoreCase()` avec un exemple chacun
 
 ### 🔍 Points de contrôle : tu dois savoir répondre
 
@@ -173,7 +174,7 @@ Une application console de type to-do list. Quand on la ferme puis qu'on la rela
 - [ ] Demande à l'IA de t'expliquer **comment séparer la logique et l'affichage**, et pourquoi, avant de coder
 - [ ] Avant d'écrire la sauvegarde, fais-toi expliquer `try-with-resources`, `BufferedReader` et `BufferedWriter`
 - [ ] **Chasse au bug** : demande à l'IA de te donner une version de ta sauvegarde/chargement avec **un bug caché**, puis trouve-le sans qu'elle te le dise
-- [ ] **Relecture critique** : demande-lui quels cas limites tu as oubliés (titre vide, fichier vide, tâche avec une virgule dans le titre…) et corrige-en au moins un
+- [x] **Relecture critique** : demande-lui quels cas limites tu as oubliés (titre vide, fichier vide, tâche avec une virgule dans le titre…) et corrige-en au moins un
 
 ### 🔍 Points de contrôle : tu dois savoir répondre
 
@@ -272,7 +273,7 @@ Pas à l'aise avec Maven ? Demande à l'IA de t'expliquer à quoi sert ce fichie
 ### 🤖 Avec l'IA
 
 - [ ] Colle la **documentation de l'API** dans ton assistant et demande-lui d'expliquer la requête et la réponse JSON **avant** de coder
-- [ ] Demande-lui d'expliquer ce qu'est une interface et pourquoi `MockAiClient` est utile
+- [x] Demande-lui d'expliquer ce qu'est une interface et pourquoi `MockAiClient` est utile
 - [ ] **Teach-back** : explique-lui avec tes mots le trajet complet d'une question (console → `AiClient` → requête HTTP → JSON → affichage) et demande-lui de corriger tes erreurs
 - [ ] Demande-lui 3 questions pièges sur ton code et réponds-y sans regarder
 
@@ -294,7 +295,7 @@ Ajoute **à la main** une commande `/help` qui liste les commandes disponibles, 
 - [x] Tout est poussé sur ton dépôt GitHub `java-ia-NOM-Prenom` (dossiers `projet1`, `projet2`, `projet3`)
 - [x] Aucune clé API dans ton dépôt (cherche `key` et `sk-` dans tes fichiers)
 - [x] Les cases de ce README correspondant à ton travail sont cochées (`[x]`)
-- [ ] `NOTES.md` complété : pour chaque projet, 3 lignes sur *ce que j'ai compris*, *ce que l'IA a mal fait ou inventé*, *ce que je n'ai pas encore compris*
+- [x] `NOTES.md` complété : pour chaque projet, 3 lignes sur *ce que j'ai compris*, *ce que l'IA a mal fait ou inventé*, *ce que je n'ai pas encore compris*
 - [ ] Lien du dépôt envoyé à moi par message privé sur Discord avant ce soir.
 
 ### Test final

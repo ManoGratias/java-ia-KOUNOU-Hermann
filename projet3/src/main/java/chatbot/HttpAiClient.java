@@ -58,7 +58,7 @@ public class HttpAiClient implements AiClient {
     }
 
     @Override
-    public String ask(String question) throws AiException {
+    public String ask(String question) {
         historique.add(message("user", question));
         try {
             String reponse = envoyer();

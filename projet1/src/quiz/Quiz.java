@@ -30,6 +30,10 @@ public class Quiz {
         new Question("Que signifie le I de IA ?", "intelligence", "Informatique", 1),
     };
 
+    // Prédiction (avant de lancer) : thème 1 + difficulté 1 => 4 questions Java faciles dans le désordre ;
+    // "  NEW " doit être accepté pour "new" ; une saisie vide affiche "Pas de réponse" sans planter ;
+    // 2 bonnes réponses sur 4 => "Pas mal, encore un petit effort." (50 %).
+    // Résultat observé : conforme.
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in, encodageClavier());
         String rejouer;

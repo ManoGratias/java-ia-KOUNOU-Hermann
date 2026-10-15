@@ -25,6 +25,11 @@ public class Main {
 
     private static final List<String> conversation = new ArrayList<>();
 
+    // Prédiction (avant de lancer) : sans AI_API_KEY => message "mode HORS-LIGNE" et réponses factices ;
+    // avec une fausse clé => "[Erreur] Clé API invalide (401)" sans planter ; avec la vraie clé => vraie réponse,
+    // et une 2e question qui fait référence à la 1re est comprise (historique). /quit quitte.
+    // Résultat observé : conforme, sauf le modèle de l'énoncé (llama-3.1-8b-instant) qui renvoie 404 :
+    // remplacé par openai/gpt-oss-20b avec l'accord de l'enseignant.
     public static void main(String[] args) {
         AiClient client = creerClient();
         Scanner scanner = new Scanner(System.in, encodageClavier());
