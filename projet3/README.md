@@ -39,8 +39,10 @@ construit avec `JsonObject`/`JsonArray` → `POST` avec les en-têtes `Authoriza
 
 ## Bonus : version fenêtre
 
-`ChatFenetre.java` (Swing). L'appel à l'IA est fait dans un `SwingWorker`, hors du thread graphique : sans ça, la
-fenêtre se figerait pendant les secondes d'attente de la réponse. Elle ne connaît que l'interface `AiClient`.
+`ChatFenetre.java` (Swing + Java2D, style dans `Ui.java`) : interface de messagerie avec bulles (les tiennes à
+droite en dégradé, celles de l'IA à gauche), indicateur « l'IA écrit… », suggestions de questions, commandes
+`/help` `/reset` `/save` `/quit`. L'appel à l'IA est fait dans un `SwingWorker`, hors du thread graphique : sans
+ça, la fenêtre se figerait pendant l'attente de la réponse. Elle ne connaît que l'interface `AiClient`.
 
 ```bash
 mvn -q compile exec:java -Dexec.mainClass=chatbot.ChatFenetre

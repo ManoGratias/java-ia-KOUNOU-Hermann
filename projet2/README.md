@@ -43,6 +43,8 @@ java -cp out taches.Main
 
 ## Bonus : version fenêtre
 
-`TachesFenetre.java` (Swing) : formulaire, tableau (`JTable`), boutons d'action. Elle utilise `GestionnaireTaches`
-et `FichierTaches` **sans les modifier** : c'est la preuve concrète de l'intérêt d'avoir séparé la logique de
-l'affichage. Sauvegarde à la fermeture de la fenêtre et via le bouton « Enregistrer ».
+`TachesFenetre.java` (Swing + Java2D, style dans `Ui.java`) : chaque tâche est une carte (liseré de couleur
+selon la priorité, clic pour la marquer faite, croix pour la supprimer, pastilles « Aujourd'hui » / « En retard »),
+filtres avec compteurs, barre d'avancement et messages animés. Elle utilise `GestionnaireTaches` et `FichierTaches`
+**sans les modifier** : c'est la preuve concrète de l'intérêt d'avoir séparé la logique de l'affichage.
+Sauvegarde automatique après chaque modification.

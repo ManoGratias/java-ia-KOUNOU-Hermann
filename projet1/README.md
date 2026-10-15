@@ -32,5 +32,7 @@ java -cp out quiz.Quiz
 
 ## Bonus : version fenêtre
 
-`QuizFenetre.java` (Swing) : trois écrans dans un `CardLayout` (accueil, question, résultat). Elle réutilise
-`Quiz.QUESTIONS`, `Quiz.selectionner()` et `Quiz.messagePalier()`, ce qui évite de dupliquer la logique.
+`QuizFenetre.java` (Swing + Java2D, style dans `Ui.java`) : trois écrans dans un `CardLayout`.
+Accueil avec choix du thème/difficulté en pastilles, question avec chrono et barre de progression, carte qui
+s'illumine en vert/rouge selon la réponse, résultat avec un anneau de score animé et des confettis à partir de 75 %.
+Elle réutilise `Quiz.QUESTIONS`, `Quiz.selectionner()` et `Quiz.messagePalier()` : la logique n'est pas dupliquée.

@@ -23,8 +23,10 @@ Chaque projet a un `README.md` avec les réponses aux points de contrôle.
 
 ### Bonus : versions avec fenêtres (Swing)
 
-Hors énoncé. Les versions console restent les versions de référence. Chaque projet a aussi une version fenêtrée
-qui réutilise les mêmes classes de logique :
+Hors énoncé. Les versions console restent les versions de référence. Chaque projet a aussi une version fenêtrée,
+thème sombre animé (fond en dégradé mouvant, cartes translucides, boutons et pastilles animés, barre de titre
+personnalisée), entièrement dessinée en Java2D **sans aucune bibliothèque**. Le style commun est dans `Ui.java`
+(identique dans les trois projets). Les fenêtres réutilisent les mêmes classes de logique :
 
 | Projet | Classe | Lancement en ligne de commande |
 | --- | --- | --- |
