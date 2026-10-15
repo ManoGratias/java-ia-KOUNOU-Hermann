@@ -21,6 +21,19 @@ cd projet3 && mvn -q compile exec:java
 
 Chaque projet a un `README.md` avec les réponses aux points de contrôle.
 
+### Bonus : versions avec fenêtres (Swing)
+
+Hors énoncé. Les versions console restent les versions de référence. Chaque projet a aussi une version fenêtrée
+qui réutilise les mêmes classes de logique :
+
+| Projet | Classe | Lancement en ligne de commande |
+| --- | --- | --- |
+| Quiz | `quiz.QuizFenetre` | `java -cp out quiz.QuizFenetre` (après `javac`) |
+| Tâches | `taches.TachesFenetre` | `java -cp out taches.TachesFenetre` (même fichier `taches.txt`) |
+| Chatbot | `chatbot.ChatFenetre` | `mvn -q compile exec:java -Dexec.mainClass=chatbot.ChatFenetre` |
+
+Dans Cursor : configurations « Bonus fenêtre - ... » dans *Run and Debug*.
+
 ---
 
 # ☕🤖 Atelier Java + IA : 3 mini-projets

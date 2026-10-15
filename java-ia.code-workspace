@@ -39,6 +39,28 @@
         "cwd": "${workspaceFolder:projet3 - Chatbot}",
         "console": "integratedTerminal",
         "envFile": "${workspaceFolder:projet3 - Chatbot}/.env"
+      },
+      {
+        "type": "java",
+        "name": "Bonus fenêtre - Quiz",
+        "request": "launch",
+        "mainClass": "quiz.QuizFenetre",
+        "cwd": "${workspaceFolder:projet1 - Quiz}"
+      },
+      {
+        "type": "java",
+        "name": "Bonus fenêtre - Tâches",
+        "request": "launch",
+        "mainClass": "taches.TachesFenetre",
+        "cwd": "${workspaceFolder:projet2 - Tâches}"
+      },
+      {
+        "type": "java",
+        "name": "Bonus fenêtre - Chatbot",
+        "request": "launch",
+        "mainClass": "chatbot.ChatFenetre",
+        "cwd": "${workspaceFolder:projet3 - Chatbot}",
+        "envFile": "${workspaceFolder:projet3 - Chatbot}/.env"
       }
     ]
   }

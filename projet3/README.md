@@ -36,3 +36,12 @@ construit avec `JsonObject`/`JsonArray` → `POST` avec les en-têtes `Authoriza
   `Retry-After`. **401** : non authentifié, clé absente, fausse ou révoquée.
 - **Extraction du texte** : `HttpAiClient.extraireTexte()` :
   `racine.getAsJsonArray("choices").get(0).getAsJsonObject().getAsJsonObject("message").get("content").getAsString()`.
+
+## Bonus : version fenêtre
+
+`ChatFenetre.java` (Swing). L'appel à l'IA est fait dans un `SwingWorker`, hors du thread graphique : sans ça, la
+fenêtre se figerait pendant les secondes d'attente de la réponse. Elle ne connaît que l'interface `AiClient`.
+
+```bash
+mvn -q compile exec:java -Dexec.mainClass=chatbot.ChatFenetre
+```

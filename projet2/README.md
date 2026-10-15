@@ -40,3 +40,9 @@ java -cp out taches.Main
 - Exception personnalisée `TacheInvalideException`
 - Tri par priorité ou par date, commande « tâches en retard »
 - Défi : « supprimer toutes les tâches terminées » (`removeIf`)
+
+## Bonus : version fenêtre
+
+`TachesFenetre.java` (Swing) : formulaire, tableau (`JTable`), boutons d'action. Elle utilise `GestionnaireTaches`
+et `FichierTaches` **sans les modifier** : c'est la preuve concrète de l'intérêt d'avoir séparé la logique de
+l'affichage. Sauvegarde à la fermeture de la fenêtre et via le bouton « Enregistrer ».

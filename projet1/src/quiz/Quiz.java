@@ -13,7 +13,7 @@ import java.util.Scanner;
 public class Quiz {
 
     // Tableau de questions (au moins 5 ; la 6e a été ajoutée pour le défi "sans IA").
-    private static final Question[] QUESTIONS = {
+    static final Question[] QUESTIONS = {
         new Question("Quel mot-clé Java permet de créer un objet ?", "new", "Java", 1),
         new Question("Quel type Java stocke un nombre entier sur 32 bits ?", "int", "Java", 1),
         new Question("Quelle méthode est le point d'entrée d'un programme Java ?", "main", "Java", 1),
@@ -86,7 +86,7 @@ public class Quiz {
         return 0; // 0 = toutes les difficultés
     }
 
-    private static List<Question> selectionner(String theme, int difficulte) {
+    static List<Question> selectionner(String theme, int difficulte) {
         List<Question> selection = new ArrayList<>();
         // Boucle de 0 à length - 1 : aller jusqu'à l'indice length lèverait
         // une ArrayIndexOutOfBoundsException.
@@ -125,22 +125,25 @@ public class Quiz {
         System.out.println("\n=== RÉSULTAT ===");
         System.out.println("Score : " + score + "/" + total);
         System.out.println("Temps total : " + dureeSecondes + " s");
+        System.out.println(messagePalier(score, total));
+    }
 
+    /** Message selon le résultat (5 paliers). Partagé entre la console et la fenêtre. */
+    static String messagePalier(int score, int total) {
         if (total == 0) {
-            System.out.println("Aucune question pour ce choix.");
-            return;
+            return "Aucune question pour ce choix.";
         }
         double pourcentage = score * 100.0 / total;
         if (pourcentage == 100) {
-            System.out.println("Parfait ! Sans faute.");
+            return "Parfait ! Sans faute.";
         } else if (pourcentage >= 75) {
-            System.out.println("Très bien, tu maîtrises le sujet.");
+            return "Très bien, tu maîtrises le sujet.";
         } else if (pourcentage >= 50) {
-            System.out.println("Pas mal, encore un petit effort.");
+            return "Pas mal, encore un petit effort.";
         } else if (pourcentage > 0) {
-            System.out.println("Il faut réviser un peu...");
+            return "Il faut réviser un peu...";
         } else {
-            System.out.println("Zéro... on recommence ?");
+            return "Zéro... on recommence ?";
         }
     }
 }

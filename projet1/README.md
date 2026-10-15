@@ -29,3 +29,8 @@ java -cp out quiz.Quiz
 // Je m'attends à : thème 1 + difficulté 1 -> 4 questions Java faciles dans un ordre aléatoire,
 // "new" tapé "  NEW " doit être accepté, une saisie vide affiche "Pas de réponse".
 ```
+
+## Bonus : version fenêtre
+
+`QuizFenetre.java` (Swing) : trois écrans dans un `CardLayout` (accueil, question, résultat). Elle réutilise
+`Quiz.QUESTIONS`, `Quiz.selectionner()` et `Quiz.messagePalier()`, ce qui évite de dupliquer la logique.
