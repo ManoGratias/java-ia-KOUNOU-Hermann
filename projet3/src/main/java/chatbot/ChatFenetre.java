@@ -96,7 +96,7 @@ public class ChatFenetre extends Ui.Fenetre {
 
         String etat = horsLigne
                 ? "Hors-ligne · réponses factices (pas de clé AI_API_KEY)"
-                : "En ligne · Groq llama-3.1-8b-instant";
+                : "En ligne · Groq " + HttpAiClient.modeleChoisi();
         JPanel identite = Ui.colonne(
                 Ui.texte("Tuteur Java", 20, Font.BOLD, Ui.TEXTE),
                 Ui.espace(2),

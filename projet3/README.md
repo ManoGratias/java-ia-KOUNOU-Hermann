@@ -20,6 +20,13 @@ Sans variable `AI_API_KEY`, le programme utilise `MockAiClient` et le dit au dé
 Avec la clé : `$env:AI_API_KEY="gsk_..."` (PowerShell) avant `mvn`, ou dans `projet3/.env` pour Cursor
 (`.env` est dans le `.gitignore`).
 
+## Modèle utilisé
+
+L'énoncé indique `llama-3.1-8b-instant`, mais Groq l'a retiré : l'API répond **404** avec ce nom. Le programme
+utilise donc `openai/gpt-oss-20b` par défaut (constante `MODELE_PAR_DEFAUT` dans `HttpAiClient`). On peut en choisir
+un autre sans toucher au code avec la variable `AI_MODEL` (dans `.env` ou le terminal). La liste des modèles
+disponibles : `GET https://api.groq.com/openai/v1/models` avec la clé.
+
 ## Trajet d'une question
 
 console (`Scanner`) → `Main` → `client.ask()` → `HttpAiClient` ajoute `{role:user}` à l'historique → corps JSON

@@ -20,11 +20,16 @@ import java.time.Duration;
 public class HttpAiClient implements AiClient {
 
     private static final String URL = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String MODELE = "llama-3.1-8b-instant";
+    /**
+     * Modèle par défaut. L'énoncé indiquait llama-3.1-8b-instant, mais Groq l'a retiré (erreur 404) :
+     * on peut en choisir un autre sans toucher au code avec la variable d'environnement AI_MODEL.
+     */
+    static final String MODELE_PAR_DEFAUT = "openai/gpt-oss-20b";
     private static final int ESSAIS_MAX = 3;
 
     private final String cleApi;
     private final String messageSysteme;
+    private final String modele;
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
@@ -34,7 +39,14 @@ public class HttpAiClient implements AiClient {
     public HttpAiClient(String cleApi, String messageSysteme) {
         this.cleApi = cleApi;
         this.messageSysteme = messageSysteme;
+        this.modele = modeleChoisi();
         reset();
+    }
+
+    /** AI_MODEL si elle est définie, sinon le modèle par défaut. */
+    static String modeleChoisi() {
+        String m = System.getenv("AI_MODEL");
+        return m == null || m.isBlank() ? MODELE_PAR_DEFAUT : m.trim();
     }
 
     @Override
@@ -62,7 +74,7 @@ public class HttpAiClient implements AiClient {
     private String envoyer() throws AiException {
         // Corps construit avec Gson : les guillemets ou retours à la ligne de la question sont échappés correctement.
         JsonObject corps = new JsonObject();
-        corps.addProperty("model", MODELE);
+        corps.addProperty("model", modele);
         corps.add("messages", historique);
 
         HttpRequest requete = HttpRequest.newBuilder(URI.create(URL))

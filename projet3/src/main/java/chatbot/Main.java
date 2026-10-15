@@ -67,7 +67,7 @@ public class Main {
             System.out.println("Variable AI_API_KEY absente : mode HORS-LIGNE (MockAiClient, réponses factices).");
             return new MockAiClient();
         }
-        System.out.println("Clé trouvée : connexion à Groq (llama-3.1-8b-instant).");
+        System.out.println("Clé trouvée : connexion à Groq (" + HttpAiClient.modeleChoisi() + ").");
         return new HttpAiClient(cle.trim(), MESSAGE_SYSTEME);
     }
 
