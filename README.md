@@ -87,7 +87,7 @@ Ensuite, guide-moi pas à pas et explique chaque nouveau concept.
 
 ## 🛠️ Étape 0 : Mise en place (10 min)
 
-- [ ] Dépôt GitHub créé : **`java-ia-NOM-Prenom`**
+- [x] Dépôt GitHub créé : **`java-ia-NOM-Prenom`**
 - [x] Trois dossiers : `projet1/`, `projet2/`, `projet3/`
 - [x] Un fichier `NOTES.md` à la racine (voir « Rendu »)
 - [x] Un `.gitignore` avant le premier commit :
@@ -291,7 +291,7 @@ Ajoute **à la main** une commande `/help` qui liste les commandes disponibles, 
 
 # 📦 Rendu
 
-- [ ] Tout est poussé sur ton dépôt GitHub `java-ia-NOM-Prenom` (dossiers `projet1`, `projet2`, `projet3`)
+- [x] Tout est poussé sur ton dépôt GitHub `java-ia-NOM-Prenom` (dossiers `projet1`, `projet2`, `projet3`)
 - [x] Aucune clé API dans ton dépôt (cherche `key` et `sk-` dans tes fichiers)
 - [x] Les cases de ce README correspondant à ton travail sont cochées (`[x]`)
 - [ ] `NOTES.md` complété : pour chaque projet, 3 lignes sur *ce que j'ai compris*, *ce que l'IA a mal fait ou inventé*, *ce que je n'ai pas encore compris*
