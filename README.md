@@ -2,39 +2,40 @@
 
 ## Lancer les projets
 
-**Dans Cursor** : ouvrir `java-ia.code-workspace`, puis onglet *Run and Debug* (Ctrl+Shift+D) et choisir
-« Projet 1 - Quiz », « Projet 2 - Tâches » ou « Projet 3 - Chatbot ».
+### Dans Cursor
 
-**En ligne de commande** (JDK 17+ et Maven requis) :
+1. *File > Open Workspace from File…* et choisir `java-ia.code-workspace` (à la racine du dépôt).
+   Les trois projets apparaissent dans l'explorateur ; le code est dans `src/`.
+2. Attendre quelques secondes que l'extension Java charge les projets (barre d'état en bas).
+3. Onglet *Run and Debug* (Ctrl+Shift+D), choisir dans la liste puis **F5** :
+   - `Fenêtre - Quiz`, `Fenêtre - Tâches`, `Fenêtre - Chatbot` : versions avec interface ;
+   - `Console - Quiz`, `Console - Tâches`, `Console - Chatbot` : versions console (énoncé).
 
-```bash
-# Projet 1
-cd projet1 && javac -encoding UTF-8 -d out src/quiz/*.java && java -cp out quiz.Quiz
-# Projet 2 (taches.txt est créé dans projet2/)
-cd projet2 && javac -encoding UTF-8 -d out src/taches/*.java && java -cp out taches.Main
-# Projet 3 (sans clé : mode MockAiClient)
-cd projet3 && mvn -q compile exec:java
+Ou dans le terminal de Cursor (Ctrl+ù), depuis la racine du dépôt :
+
+```powershell
+# Quiz
+cd projet1; javac -encoding UTF-8 -d out src/quiz/*.java; java -cp out quiz.QuizFenetre   # ou quiz.Quiz
+
+# Tâches
+cd projet2; javac -encoding UTF-8 -d out src/taches/*.java; java -cp out taches.TachesFenetre   # ou taches.Main
+
+# Chatbot (console par défaut ; les guillemets sont nécessaires sous PowerShell)
+cd projet3; mvn -q compile exec:java "-Dexec.mainClass=chatbot.ChatFenetre"   # ou : mvn -q compile exec:java
 ```
 
-**Clé API (projet 3)** : copier `projet3/.env.example` en `projet3/.env` et coller la clé Groq après `AI_API_KEY=`
-(pour Cursor), ou en ligne de commande : `$env:AI_API_KEY="gsk_..."` (PowerShell). Le `.env` est ignoré par Git.
+**Clé API (projet 3)** : coller la clé Groq après `AI_API_KEY=` dans `projet3/.env` (copie de `projet3/.env.example`) :
+les lancements *Run and Debug* la lisent automatiquement. Dans un terminal : `$env:AI_API_KEY="gsk_..."` avant `mvn`.
+Le `.env` est ignoré par Git. Sans clé, le chatbot fonctionne en mode hors-ligne (`MockAiClient`).
 
 Chaque projet a un `README.md` avec les réponses aux points de contrôle.
 
 ### Bonus : versions avec fenêtres (Swing)
 
 Hors énoncé. Les versions console restent les versions de référence. Chaque projet a aussi une version fenêtrée,
-thème sombre animé (fond en dégradé mouvant, cartes translucides, boutons et pastilles animés, barre de titre
-personnalisée), entièrement dessinée en Java2D **sans aucune bibliothèque**. Le style commun est dans `Ui.java`
-(identique dans les trois projets). Les fenêtres réutilisent les mêmes classes de logique :
-
-| Projet | Classe | Lancement en ligne de commande |
-| --- | --- | --- |
-| Quiz | `quiz.QuizFenetre` | `java -cp out quiz.QuizFenetre` (après `javac`) |
-| Tâches | `taches.TachesFenetre` | `java -cp out taches.TachesFenetre` (même fichier `taches.txt`) |
-| Chatbot | `chatbot.ChatFenetre` | `mvn -q compile exec:java -Dexec.mainClass=chatbot.ChatFenetre` |
-
-Dans Cursor : configurations « Bonus fenêtre - ... » dans *Run and Debug*.
+style « arcade » sombre (formes qui flottent, couleurs vives, boutons en relief, animations), entièrement dessinée
+en Java2D **sans aucune bibliothèque**. Le style commun est dans `Ui.java` (identique dans les trois projets).
+Les fenêtres réutilisent les mêmes classes de logique : `quiz.QuizFenetre`, `taches.TachesFenetre`, `chatbot.ChatFenetre`.
 
 ---
 

@@ -20,7 +20,6 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.LayoutManager;
@@ -93,35 +92,15 @@ public class ChatFenetre extends Ui.Fenetre {
     // ------------------------------------------------------------------ construction
 
     private JPanel creerEntete() {
-        JComponent avatar = new JComponent() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = Ui.lisse(g);
-                g2.setColor(Ui.alpha(Ui.VIOLET, 60));
-                g2.fill(new Ellipse2D.Float(0, 0, 52, 52));
-                g2.setPaint(new GradientPaint(0, 0, Ui.VIOLET, 52, 52, Ui.ROSE));
-                g2.fill(new Ellipse2D.Float(4, 4, 44, 44));
-                g2.setFont(Ui.police(Font.BOLD, 17));
-                FontMetrics fm = g2.getFontMetrics();
-                g2.setColor(Color.WHITE);
-                g2.drawString("IA", 26 - fm.stringWidth("IA") / 2f, 26 - fm.getHeight() / 2f + fm.getAscent());
-                // pastille d'état en bas à droite
-                g2.setColor(Ui.FOND_1);
-                g2.fill(new Ellipse2D.Float(36, 36, 16, 16));
-                g2.setColor(horsLigne ? Ui.AMBRE : Ui.VERT);
-                g2.fill(new Ellipse2D.Float(39, 39, 10, 10));
-                g2.dispose();
-            }
-        };
-        avatar.setPreferredSize(new Dimension(52, 52));
+        JComponent avatar = new Robot(horsLigne);
 
         String etat = horsLigne
                 ? "Hors-ligne · réponses factices (pas de clé AI_API_KEY)"
                 : "En ligne · Groq llama-3.1-8b-instant";
         JPanel identite = Ui.colonne(
-                Ui.texte("Tuteur Java", 19, Font.BOLD, Ui.TEXTE),
+                Ui.texte("Tuteur Java", 20, Font.BOLD, Ui.TEXTE),
                 Ui.espace(2),
-                Ui.texte(etat, 13, Font.PLAIN, horsLigne ? Ui.AMBRE : Ui.VERT));
+                Ui.texte(etat, 13, Font.BOLD, horsLigne ? Ui.ORANGE : Ui.CITRON));
 
         JPanel gauche = new JPanel(new BorderLayout(14, 0));
         gauche.setOpaque(false);
@@ -137,8 +116,8 @@ public class ChatFenetre extends Ui.Fenetre {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = Ui.lisse(g);
-                g2.setColor(Ui.alpha(Color.WHITE, 22));
-                g2.fillRect(28, getHeight() - 1, getWidth() - 56, 1);
+                g2.setColor(Ui.BORD);
+                g2.fillRect(28, getHeight() - 2, getWidth() - 56, 2);
                 g2.dispose();
             }
         };
@@ -293,6 +272,7 @@ public class ChatFenetre extends Ui.Fenetre {
     private static final class Bulle extends JPanel {
         private static final int PAD_X = 18;
         private static final int PAD_Y = 12;
+        private static final int OMBRE = 5;
         private final Genre genre;
         private final JTextArea zone = new JTextArea();
         private final Ui.Anim apparition = new Ui.Anim(this, 0, 0.14f);
@@ -309,13 +289,13 @@ public class ChatFenetre extends Ui.Fenetre {
             zone.setBorder(null);
             zone.setFont(Ui.police(Font.PLAIN, genre == Genre.INFO ? 13.5f : 15.5f));
             zone.setForeground(switch (genre) {
-                case MOI -> Color.WHITE;
+                case MOI -> Ui.ENCRE;
                 case IA -> Ui.TEXTE;
-                case ERREUR -> Ui.melange(Ui.ROUGE, Color.WHITE, 0.55f);
-                case INFO -> Ui.melange(Ui.AMBRE, Color.WHITE, 0.45f);
+                case ERREUR -> Ui.melange(Ui.CORAIL, Color.WHITE, 0.35f);
+                case INFO -> Ui.melange(Ui.BLEU, Color.WHITE, 0.45f);
             });
-            zone.setSelectionColor(Ui.alpha(Color.WHITE, 70));
-            zone.setSelectedTextColor(Color.WHITE);
+            zone.setSelectionColor(genre == Genre.MOI ? Ui.alpha(Ui.ENCRE, 60) : Ui.alpha(Ui.CYAN, 110));
+            zone.setSelectedTextColor(genre == Genre.MOI ? Ui.ENCRE : Color.WHITE);
             add(zone);
             apparition.vers(1);
         }
@@ -331,7 +311,7 @@ public class ChatFenetre extends Ui.Fenetre {
             zone.setSize(largeurTexte, Short.MAX_VALUE);
             int hauteur = zone.getPreferredSize().height;
             zone.setBounds(PAD_X, PAD_Y, largeurTexte, hauteur);
-            return new Dimension(largeurTexte + 2 * PAD_X, hauteur + 2 * PAD_Y);
+            return new Dimension(largeurTexte + 2 * PAD_X + OMBRE, hauteur + 2 * PAD_Y + OMBRE);
         }
 
         @Override
@@ -348,34 +328,24 @@ public class ChatFenetre extends Ui.Fenetre {
         @Override
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = Ui.lisse(g);
-            int w = getWidth();
-            int h = getHeight();
-            RoundRectangle2D forme = new RoundRectangle2D.Float(0.5f, 0.5f, w - 1, h - 1, 22, 22);
-            switch (genre) {
-                case MOI -> {
-                    g2.setPaint(new GradientPaint(0, 0, Ui.VIOLET, w, h, Ui.ROSE));
-                    g2.fill(forme);
-                    g2.setPaint(new GradientPaint(0, 0, Ui.alpha(Color.WHITE, 45), 0, h * 0.7f, Ui.alpha(Color.WHITE, 0)));
-                    g2.fill(forme);
-                }
-                case IA -> {
-                    g2.setColor(Ui.alpha(Color.WHITE, 20));
-                    g2.fill(forme);
-                    g2.setColor(Ui.alpha(Color.WHITE, 36));
-                    g2.draw(forme);
-                }
-                case ERREUR -> {
-                    g2.setColor(Ui.alpha(Ui.ROUGE, 40));
-                    g2.fill(forme);
-                    g2.setColor(Ui.alpha(Ui.ROUGE, 150));
-                    g2.draw(forme);
-                }
-                case INFO -> {
-                    g2.setColor(Ui.alpha(Ui.AMBRE, 26));
-                    g2.fill(forme);
-                    g2.setColor(Ui.alpha(Ui.AMBRE, 110));
-                    g2.draw(forme);
-                }
+            int w = getWidth() - OMBRE;
+            int h = getHeight() - OMBRE;
+            Color face = genre == Genre.MOI ? Ui.JAUNE : Ui.CARTE;
+            Color bord = switch (genre) {
+                case MOI -> null;
+                case IA -> Ui.BORD;
+                case ERREUR -> Ui.CORAIL;
+                case INFO -> Ui.BLEU;
+            };
+            g2.setColor(Ui.OMBRE);
+            g2.fill(new RoundRectangle2D.Float(OMBRE, OMBRE, w, h, 18, 18));
+            RoundRectangle2D forme = new RoundRectangle2D.Float(1, 1, w - 2, h - 2, 18, 18);
+            g2.setColor(face);
+            g2.fill(forme);
+            if (bord != null) {
+                g2.setColor(bord);
+                g2.setStroke(new BasicStroke(2f));
+                g2.draw(forme);
             }
             g2.dispose();
         }
@@ -387,7 +357,7 @@ public class ChatFenetre extends Ui.Fenetre {
         private float phase = 0;
 
         Indicateur() {
-            setPreferredSize(new Dimension(78, 44));
+            setPreferredSize(new Dimension(84, 50));
             animation = new Timer(16, e -> {
                 phase += 0.12f;
                 repaint();
@@ -411,17 +381,21 @@ public class ChatFenetre extends Ui.Fenetre {
             Graphics2D g2 = Ui.lisse(g);
             int w = getWidth();
             int h = getHeight();
-            RoundRectangle2D forme = new RoundRectangle2D.Float(0.5f, 0.5f, w - 1, h - 1, 22, 22);
-            g2.setColor(Ui.alpha(Color.WHITE, 20));
+            g2.setColor(Ui.OMBRE);
+            g2.fill(new RoundRectangle2D.Float(5, 5, w - 5, h - 5, 18, 18));
+            RoundRectangle2D forme = new RoundRectangle2D.Float(1, 1, w - 7, h - 7, 18, 18);
+            g2.setColor(Ui.CARTE);
             g2.fill(forme);
-            g2.setColor(Ui.alpha(Color.WHITE, 36));
+            g2.setColor(Ui.BORD);
+            g2.setStroke(new BasicStroke(2f));
             g2.draw(forme);
+            Color[] couleurs = {Ui.JAUNE, Ui.CORAIL, Ui.CYAN};
             for (int i = 0; i < 3; i++) {
                 float rebond = (float) Math.max(0, Math.sin(phase - i * 0.7f));
                 float x = 22 + i * 17;
-                float y = h / 2f - rebond * 6;
-                g2.setColor(Ui.melange(Ui.DISCRET, Ui.CYAN, rebond));
-                g2.fill(new Ellipse2D.Float(x - 4, y - 4, 8, 8));
+                float y = (h - 5) / 2f - rebond * 7;
+                g2.setColor(couleurs[i]);
+                g2.fill(new Ellipse2D.Float(x - 5, y - 5, 10, 10));
             }
             g2.dispose();
         }
@@ -515,6 +489,47 @@ public class ChatFenetre extends Ui.Fenetre {
         }
     }
 
+    /** Avatar : une petite tête de robot qui flotte et cligne des yeux, avec un voyant d'état. */
+    private static final class Robot extends JComponent {
+        private final boolean horsLigne;
+        private float t = 0;
+
+        Robot(boolean horsLigne) {
+            this.horsLigne = horsLigne;
+            setPreferredSize(new Dimension(58, 58));
+            new Timer(50, e -> {
+                t += 0.05f;
+                repaint();
+            }).start();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = Ui.lisse(g);
+            g2.translate(0, (float) Math.sin(t * 2) * 1.5f);
+            // antenne et voyant (vert = en ligne, orange = hors-ligne)
+            g2.setColor(Ui.BORD);
+            g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.draw(new java.awt.geom.Line2D.Float(26, 4, 26, 12));
+            g2.setColor(horsLigne ? Ui.ORANGE : Ui.CITRON);
+            g2.fill(new Ellipse2D.Float(21, 0, 10, 10));
+            // tête avec ombre dure
+            g2.setColor(Ui.OMBRE);
+            g2.fill(new RoundRectangle2D.Float(8, 16, 44, 36, 14, 14));
+            g2.setColor(Ui.CYAN);
+            g2.fill(new RoundRectangle2D.Float(4, 12, 44, 36, 14, 14));
+            // yeux qui clignent de temps en temps
+            float hauteurOeil = (t % 4) > 3.85f ? 2 : 9;
+            g2.setColor(Ui.ENCRE);
+            g2.fill(new RoundRectangle2D.Float(15, 25 + (9 - hauteurOeil) / 2, 7, hauteurOeil, 4, 4));
+            g2.fill(new RoundRectangle2D.Float(30, 25 + (9 - hauteurOeil) / 2, 7, hauteurOeil, 4, 4));
+            // sourire
+            g2.setStroke(new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.draw(new java.awt.geom.Arc2D.Float(18, 30, 16, 10, 200, 140, java.awt.geom.Arc2D.OPEN));
+            g2.dispose();
+        }
+    }
+
     /** Bouton rond d'envoi avec une flèche dessinée. */
     private static final class BoutonEnvoyer extends JButton {
         private final Ui.Anim survol = new Ui.Anim(this, 0, 0.2f);
@@ -547,12 +562,14 @@ public class ChatFenetre extends Ui.Fenetre {
             if (!isEnabled()) {
                 Ui.opacite(g2, 0.35f);
             }
-            int t = Math.min(getWidth(), getHeight());
-            float x = (getWidth() - t) / 2f;
-            float y = (getHeight() - t) / 2f;
-            g2.setPaint(new GradientPaint(x, y, Ui.melange(Ui.VIOLET, Color.WHITE, s * 0.2f),
-                    x + t, y + t, Ui.melange(Ui.ROSE, Color.WHITE, s * 0.2f)));
-            g2.fill(new Ellipse2D.Float(x, y, t, t));
+            int t = Math.min(getWidth(), getHeight()) - 5;
+            float x = (getWidth() - t - 5) / 2f;
+            float enfoncement = getModel().isPressed() ? 4 : 1 - s;
+            g2.setColor(Ui.fonce(Ui.JAUNE));
+            g2.fill(new Ellipse2D.Float(x, 5, t, t));
+            g2.setColor(Ui.melange(Ui.JAUNE, Color.WHITE, s * 0.15f));
+            g2.fill(new Ellipse2D.Float(x, enfoncement, t, t));
+            float y = enfoncement;
             // flèche "avion en papier"
             float cx = x + t / 2f + 1;
             float cy = y + t / 2f;
@@ -562,7 +579,7 @@ public class ChatFenetre extends Ui.Fenetre {
             fleche.lineTo(cx - 9, cy + 8);
             fleche.lineTo(cx - 5, cy);
             fleche.closePath();
-            g2.setColor(Color.WHITE);
+            g2.setColor(Ui.ENCRE);
             g2.fill(fleche);
             g2.setStroke(new BasicStroke(1.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
             g2.draw(fleche);

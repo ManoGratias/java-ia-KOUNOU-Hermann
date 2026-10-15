@@ -1,5 +1,7 @@
 package quiz;
 
+import java.io.Console;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +31,7 @@ public class Quiz {
     };
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in, encodageClavier());
         String rejouer;
 
         do {
@@ -145,5 +147,14 @@ public class Quiz {
         } else {
             return "Zéro... on recommence ?";
         }
+    }
+
+    /**
+     * Encodage du clavier. Sous Windows, la console envoie les accents en cp850 alors que Java lit
+     * en UTF-8 par défaut : sans ça, "Café" devient "Caf?". Hors console (entrée redirigée), on garde le défaut.
+     */
+    private static Charset encodageClavier() {
+        Console console = System.console();
+        return console != null ? console.charset() : Charset.defaultCharset();
     }
 }

@@ -1,7 +1,9 @@
 package chatbot;
 
 import java.io.BufferedWriter;
+import java.io.Console;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +27,7 @@ public class Main {
 
     public static void main(String[] args) {
         AiClient client = creerClient();
-        Scanner scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in, encodageClavier());
 
         System.out.println("Pose ta question (/help pour les commandes).");
         while (true) {
@@ -99,5 +101,14 @@ public class Main {
         } catch (IOException e) {
             System.out.println("[Erreur] Sauvegarde impossible : " + e.getMessage());
         }
+    }
+
+    /**
+     * Encodage du clavier. Sous Windows, la console envoie les accents en cp850 alors que Java lit
+     * en UTF-8 par défaut : sans ça, "Café" devient "Caf?". Hors console (entrée redirigée), on garde le défaut.
+     */
+    private static Charset encodageClavier() {
+        Console console = System.console();
+        return console != null ? console.charset() : Charset.defaultCharset();
     }
 }

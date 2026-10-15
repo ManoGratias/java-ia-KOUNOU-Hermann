@@ -13,7 +13,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -46,19 +45,19 @@ public class QuizFenetre extends Ui.Fenetre {
     private final Ui.Chips choixTheme = new Ui.Chips(THEMES);
     private final Ui.Chips choixDifficulte = new Ui.Chips("Mélangée", "Facile", "Difficile");
     private final JLabel nombreQuestions = Ui.texte("", 13, Font.PLAIN, Ui.DISCRET);
-    private final Ui.Bouton commencer = new Ui.Bouton("Commencer  →", Ui.VIOLET, Ui.ROSE);
+    private final Ui.Bouton commencer = new Ui.Bouton("Commencer  →", Ui.JAUNE);
 
     // Question
     private final JLabel progression = Ui.texte("", 15, Font.BOLD, Ui.TEXTE);
-    private final Ui.Pastille pastilleScore = new Ui.Pastille("Score 0", Ui.VIOLET);
+    private final Ui.Pastille pastilleScore = new Ui.Pastille("Score 0", Ui.JAUNE);
     private final Ui.Pastille pastilleChrono = new Ui.Pastille("0:00", Ui.CYAN);
-    private final Ui.Pastille pastilleTheme = new Ui.Pastille("", Ui.ROSE);
+    private final Ui.Pastille pastilleTheme = new Ui.Pastille("", Ui.BLEU);
     private final Ui.Pastille pastilleNiveau = new Ui.Pastille("", Ui.VERT);
     private final Ui.Barre barre = new Ui.Barre();
     private final Ui.Carte carteQuestion = new Ui.Carte(new BorderLayout(0, 22));
     private final JLabel enonce = Ui.texte("", 26, Font.BOLD, Ui.TEXTE);
     private final Ui.Champ reponse = new Ui.Champ("Ta réponse…");
-    private final Ui.Bouton valider = new Ui.Bouton("Valider", Ui.VIOLET, Ui.ROSE);
+    private final Ui.Bouton valider = new Ui.Bouton("Valider", Ui.JAUNE);
     private final Ui.Banniere retour = new Ui.Banniere();
     private final Timer chrono = new Timer(1000, e -> majChrono());
 
@@ -67,7 +66,7 @@ public class QuizFenetre extends Ui.Fenetre {
     private final Anneau anneau = new Anneau();
     private final JLabel resultatMessage = Ui.texte("", 24, Font.BOLD, Ui.TEXTE);
     private final JLabel resultatDetail = Ui.texte("", 15, Font.PLAIN, Ui.DISCRET);
-    private final Ui.Bouton rejouer = new Ui.Bouton("Rejouer", Ui.VIOLET, Ui.ROSE);
+    private final Ui.Bouton rejouer = new Ui.Bouton("Rejouer", Ui.CITRON);
 
     private List<Question> questions;
     private int indice;
@@ -108,7 +107,7 @@ public class QuizFenetre extends Ui.Fenetre {
         JPanel colonne = Ui.colonne(
                 Ui.texte("ATELIER JAVA + IA", 13, Font.BOLD, Ui.CYAN),
                 Ui.espace(4),
-                new Ui.TitreDegrade("Quiz Java", 64),
+                new Ui.Titre("Quiz Java", 72),
                 Ui.texte("Teste tes connaissances en Java et en informatique.", 17, Font.PLAIN, Ui.DISCRET),
                 Ui.espace(30),
                 carte,
@@ -315,21 +314,23 @@ public class QuizFenetre extends Ui.Fenetre {
             float y = (getHeight() - taille) / 2f;
             float v = progression.get();
             float cible = total == 0 ? 0 : (float) score / total;
-            Color c1 = cible >= 0.75f ? Ui.VERT : cible >= 0.5f ? Ui.VIOLET : Ui.ROSE;
-            Color c2 = cible >= 0.5f ? Ui.CYAN : Ui.AMBRE;
+            Color couleur = cible >= 0.75f ? Ui.CITRON : cible >= 0.5f ? Ui.JAUNE : Ui.CORAIL;
 
-            g2.setColor(Ui.alpha(c1, 25));
-            g2.fill(new Ellipse2D.Float(x - 8, y - 8, taille + 16, taille + 16));
-            g2.setStroke(new BasicStroke(18, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-            g2.setColor(Ui.alpha(Color.WHITE, 25));
+            // disque central avec ombre dure, puis la piste et l'arc de score
+            g2.setColor(Ui.OMBRE);
+            g2.fill(new Ellipse2D.Float(x + 6, y + 6, taille, taille));
+            g2.setColor(Ui.CARTE);
+            g2.fill(new Ellipse2D.Float(x, y, taille, taille));
+            g2.setStroke(new BasicStroke(20, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g2.setColor(new Color(0x101018));
             g2.draw(new Ellipse2D.Float(x, y, taille, taille));
             if (v > 0.001f) {
-                g2.setPaint(new GradientPaint(x, y, c1, x + taille, y + taille, c2));
+                g2.setColor(couleur);
                 g2.draw(new Arc2D.Float(x, y, taille, taille, 90, -360 * v, Arc2D.OPEN));
             }
 
             String pourcent = Math.round(v * 100) + "%";
-            g2.setFont(Ui.police(Font.BOLD, 50));
+            g2.setFont(Ui.policeTitre(48));
             FontMetrics fm = g2.getFontMetrics();
             g2.setColor(Ui.TEXTE);
             float cy = getHeight() / 2f;
@@ -345,7 +346,7 @@ public class QuizFenetre extends Ui.Fenetre {
 
     /** Écran de résultat capable de faire pleuvoir des confettis par-dessus son contenu. */
     private static final class EcranResultat extends JPanel {
-        private static final Color[] COULEURS = {Ui.VIOLET, Ui.ROSE, Ui.CYAN, Ui.VERT, Ui.AMBRE, Color.WHITE};
+        private static final Color[] COULEURS = {Ui.JAUNE, Ui.CORAIL, Ui.CYAN, Ui.CITRON, Ui.BLEU, Ui.ORANGE, Color.WHITE};
         // chaque confetti : x, y, vitesse x, vitesse y, angle, vitesse de rotation, couleur, taille
         private final List<float[]> confettis = new ArrayList<>();
         private final Random hasard = new Random();

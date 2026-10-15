@@ -10,14 +10,40 @@
       { "name": "JavaSE-21", "path": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1", "default": true }
     ],
     "maven.executable.path": "C:\\Users\\hkounou\\tools\\apache-maven-3.9.9\\bin\\mvn.cmd",
-    "files.encoding": "utf8"
+    "files.encoding": "utf8",
+    "terminal.integrated.env.windows": {
+      "JAVA_HOME": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1",
+      "PATH": "C:\\Users\\hkounou\\tools\\jdk-21.0.12.1+1\\bin;C:\\Users\\hkounou\\tools\\apache-maven-3.9.9\\bin;${env:PATH}"
+    }
   },
   "launch": {
     "version": "0.2.0",
     "configurations": [
       {
         "type": "java",
-        "name": "Projet 1 - Quiz",
+        "name": "Fenêtre - Quiz",
+        "request": "launch",
+        "mainClass": "quiz.QuizFenetre",
+        "cwd": "${workspaceFolder:projet1 - Quiz}"
+      },
+      {
+        "type": "java",
+        "name": "Fenêtre - Tâches",
+        "request": "launch",
+        "mainClass": "taches.TachesFenetre",
+        "cwd": "${workspaceFolder:projet2 - Tâches}"
+      },
+      {
+        "type": "java",
+        "name": "Fenêtre - Chatbot",
+        "request": "launch",
+        "mainClass": "chatbot.ChatFenetre",
+        "cwd": "${workspaceFolder:projet3 - Chatbot}",
+        "envFile": "${workspaceFolder:projet3 - Chatbot}/.env"
+      },
+      {
+        "type": "java",
+        "name": "Console - Quiz",
         "request": "launch",
         "mainClass": "quiz.Quiz",
         "cwd": "${workspaceFolder:projet1 - Quiz}",
@@ -25,7 +51,7 @@
       },
       {
         "type": "java",
-        "name": "Projet 2 - Tâches",
+        "name": "Console - Tâches",
         "request": "launch",
         "mainClass": "taches.Main",
         "cwd": "${workspaceFolder:projet2 - Tâches}",
@@ -33,33 +59,11 @@
       },
       {
         "type": "java",
-        "name": "Projet 3 - Chatbot",
+        "name": "Console - Chatbot",
         "request": "launch",
         "mainClass": "chatbot.Main",
         "cwd": "${workspaceFolder:projet3 - Chatbot}",
         "console": "integratedTerminal",
-        "envFile": "${workspaceFolder:projet3 - Chatbot}/.env"
-      },
-      {
-        "type": "java",
-        "name": "Bonus fenêtre - Quiz",
-        "request": "launch",
-        "mainClass": "quiz.QuizFenetre",
-        "cwd": "${workspaceFolder:projet1 - Quiz}"
-      },
-      {
-        "type": "java",
-        "name": "Bonus fenêtre - Tâches",
-        "request": "launch",
-        "mainClass": "taches.TachesFenetre",
-        "cwd": "${workspaceFolder:projet2 - Tâches}"
-      },
-      {
-        "type": "java",
-        "name": "Bonus fenêtre - Chatbot",
-        "request": "launch",
-        "mainClass": "chatbot.ChatFenetre",
-        "cwd": "${workspaceFolder:projet3 - Chatbot}",
         "envFile": "${workspaceFolder:projet3 - Chatbot}/.env"
       }
     ]

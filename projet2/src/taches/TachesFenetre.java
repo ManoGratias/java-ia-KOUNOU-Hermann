@@ -54,7 +54,7 @@ public class TachesFenetre extends Ui.Fenetre {
     private final Ui.Champ champTitre = new Ui.Champ("Nouvelle tâche…");
     private final Ui.Chips choixPriorite = new Ui.Chips("Basse", "Moyenne", "Haute");
     private final Ui.Champ champEcheance = new Ui.Champ("AAAA-MM-JJ");
-    private final Ui.Bouton ajouter = new Ui.Bouton("+  Ajouter", Ui.VIOLET, Ui.ROSE);
+    private final Ui.Bouton ajouter = new Ui.Bouton("+  Ajouter", Ui.JAUNE);
 
     private final Ui.Chips filtres = new Ui.Chips("Toutes", "À faire", "Faites", "En retard");
     private final JLabel resume = Ui.texte("", 15, Font.BOLD, Ui.TEXTE);
@@ -94,7 +94,7 @@ public class TachesFenetre extends Ui.Fenetre {
         aujourdhui = Character.toUpperCase(aujourdhui.charAt(0)) + aujourdhui.substring(1);
         JPanel titre = Ui.colonne(
                 Ui.texte(aujourdhui.toUpperCase(Locale.FRENCH), 12, Font.BOLD, Ui.CYAN),
-                new Ui.TitreDegrade("Mes tâches", 46));
+                new Ui.Titre("Mes tâches", 50));
 
         barre.setPreferredSize(new Dimension(260, 8));
         JPanel avancement = Ui.colonne(resume, Ui.espace(10), barre);
@@ -304,7 +304,8 @@ public class TachesFenetre extends Ui.Fenetre {
 
     /** Carte d'une tâche, entièrement dessinée : rond à cocher, titre, pastilles, bouton supprimer. */
     private final class CarteTache extends JComponent {
-        private static final int HAUTEUR = 66;
+        private static final int HAUTEUR = 70;
+        private static final int OMBRE = 5;
         private final Tache tache;
         private final int numero;
         private final Ui.Anim survol = new Ui.Anim(this, 0, 0.2f);
@@ -353,7 +354,7 @@ public class TachesFenetre extends Ui.Fenetre {
         }
 
         private Rectangle zoneCroix() {
-            return new Rectangle(getWidth() - 50, HAUTEUR / 2 - 16, 32, 32);
+            return new Rectangle(getWidth() - OMBRE - 50, (HAUTEUR - OMBRE) / 2 - 16, 32, 32);
         }
 
         @Override
@@ -373,8 +374,8 @@ public class TachesFenetre extends Ui.Fenetre {
             float s = survol.get();
             Ui.opacite(g2, a);
             g2.translate((1 - a) * -24, 0);
-            int w = getWidth();
-            int h = HAUTEUR;
+            int w = getWidth() - OMBRE;
+            int h = HAUTEUR - OMBRE;
             boolean faite = tache.estFaite();
             LocalDate aujourdhui = LocalDate.now();
             Color couleurPriorite = switch (tache.getPriorite()) {
@@ -383,34 +384,39 @@ public class TachesFenetre extends Ui.Fenetre {
                 case BASSE -> Ui.VERT;
             };
 
-            // fond de la carte
-            RoundRectangle2D forme = new RoundRectangle2D.Float(0.5f, 0.5f, w - 1, h - 1, 20, 20);
-            g2.setColor(Ui.alpha(Color.WHITE, (int) ((faite ? 8 : 15) + 12 * s)));
+            // fond de la carte avec ombre dure ; au survol elle se soulève un peu
+            float lev = 2 * s;
+            g2.setColor(Ui.OMBRE);
+            g2.fill(new RoundRectangle2D.Float(OMBRE, OMBRE, w, h, 18, 18));
+            g2.translate(-lev, -lev);
+            RoundRectangle2D forme = new RoundRectangle2D.Float(1, 1, w - 2, h - 2, 18, 18);
+            g2.setColor(faite ? new Color(0x15151F) : Ui.melange(Ui.CARTE, Ui.CARTE_CLAIRE, s));
             g2.fill(forme);
-            g2.setColor(Ui.alpha(Color.WHITE, (int) (28 + 30 * s)));
-            g2.setStroke(new BasicStroke(1f));
+            g2.setColor(Ui.melange(Ui.BORD, faite ? Ui.BORD : couleurPriorite, s));
+            g2.setStroke(new BasicStroke(2f));
             g2.draw(forme);
-            // liseré de priorité à gauche
-            g2.setColor(faite ? Ui.alpha(couleurPriorite, 90) : couleurPriorite);
-            g2.fill(new RoundRectangle2D.Float(0, 14, 4, h - 28, 4, 4));
+            // bloc de priorité à gauche
+            g2.setColor(faite ? Ui.alpha(couleurPriorite, 80) : couleurPriorite);
+            g2.fill(new RoundRectangle2D.Float(1, 1, 10, h - 2, 8, 8));
+            g2.fillRect(6, 1, 6, h - 2);
 
             // rond à cocher
-            float cx = 38;
+            float cx = 42;
             float cy = h / 2f;
             if (faite) {
                 g2.setColor(Ui.VERT);
-                g2.fill(new Ellipse2D.Float(cx - 12, cy - 12, 24, 24));
-                Ui.coche(g2, cx, cy, 13, Ui.FOND_1);
+                g2.fill(new RoundRectangle2D.Float(cx - 13, cy - 13, 26, 26, 9, 9));
+                Ui.coche(g2, cx, cy, 14, Ui.ENCRE);
             } else {
-                g2.setColor(Ui.alpha(Ui.VERT, (int) (70 * s)));
-                g2.fill(new Ellipse2D.Float(cx - 12, cy - 12, 24, 24));
-                g2.setColor(Ui.melange(Ui.alpha(Color.WHITE, 110), Ui.VERT, s));
-                g2.setStroke(new BasicStroke(2f));
-                g2.draw(new Ellipse2D.Float(cx - 11, cy - 11, 22, 22));
+                g2.setColor(Ui.alpha(Ui.VERT, (int) (60 * s)));
+                g2.fill(new RoundRectangle2D.Float(cx - 13, cy - 13, 26, 26, 9, 9));
+                g2.setColor(Ui.melange(Ui.DISCRET, Ui.VERT, s));
+                g2.setStroke(new BasicStroke(2.5f));
+                g2.draw(new RoundRectangle2D.Float(cx - 12, cy - 12, 24, 24, 8, 8));
             }
 
             // pastilles à droite (de droite à gauche)
-            int x = w - 64;
+            int x = w - 60;
             String priorite = tache.getPriorite().name().charAt(0) + tache.getPriorite().name().substring(1).toLowerCase();
             x = Ui.pastille(g2, priorite, faite ? Ui.DISCRET : couleurPriorite, x, (int) cy) - 8;
             if (tache.getEcheance() != null) {
@@ -432,25 +438,25 @@ public class TachesFenetre extends Ui.Fenetre {
             // titre (barré si faite)
             g2.setFont(Ui.police(faite ? Font.PLAIN : Font.BOLD, 16));
             FontMetrics fm = g2.getFontMetrics();
-            String titre = Ui.tronquer(tache.getTitre(), fm, x - 70);
+            String titre = Ui.tronquer(tache.getTitre(), fm, x - 80);
             float ty = cy - fm.getHeight() / 2f + fm.getAscent();
             g2.setColor(faite ? Ui.DISCRET : Ui.TEXTE);
-            g2.drawString(titre, 64, ty);
+            g2.drawString(titre, 70, ty);
             if (faite) {
                 g2.setStroke(new BasicStroke(1.5f));
-                g2.draw(new Line2D.Float(64, cy + 1, 64 + fm.stringWidth(titre), cy + 1));
+                g2.draw(new Line2D.Float(70, cy + 1, 70 + fm.stringWidth(titre), cy + 1));
             }
 
             // bouton supprimer (visible au survol de la carte)
             float sc = survolCroix.get();
             Rectangle zc = zoneCroix();
             if (sc > 0.01f) {
-                g2.setColor(Ui.alpha(Ui.ROUGE, (int) (60 * sc)));
-                g2.fill(new Ellipse2D.Float(zc.x, zc.y, zc.width, zc.height));
+                g2.setColor(Ui.alpha(Ui.ROUGE, (int) (255 * sc)));
+                g2.fill(new RoundRectangle2D.Float(zc.x, zc.y, zc.width, zc.height, 10, 10));
             }
             Graphics2D g3 = (Graphics2D) g2.create();
             Ui.opacite(g3, a * (0.25f + 0.75f * Math.max(s, sc)));
-            Ui.croix(g3, (float) zc.getCenterX(), (float) zc.getCenterY(), 26, Ui.melange(Ui.DISCRET, Ui.ROUGE, sc));
+            Ui.croix(g3, (float) zc.getCenterX(), (float) zc.getCenterY(), 26, Ui.melange(Ui.DISCRET, Ui.ENCRE, sc));
             g3.dispose();
             g2.dispose();
         }

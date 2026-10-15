@@ -28,18 +28,18 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.LayoutManager;
-import java.awt.LinearGradientPaint;
 import java.awt.Point;
 import java.awt.RadialGradientPaint;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
@@ -47,16 +47,20 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.IntConsumer;
 
 /**
- * Boîte à outils graphique maison (Swing + Java2D) : thème sombre, dégradés, coins arrondis, animations.
+ * Boîte à outils graphique maison (Swing + Java2D), style "arcade" sombre :
+ * fond quasi noir avec des formes qui flottent, couleurs vives, boutons en relief, ombres dures.
  * Aucune bibliothèque externe : chaque composant se dessine lui-même dans paintComponent().
  * Ce fichier est identique dans les trois projets (seul le package change).
  */
@@ -67,17 +71,28 @@ final class Ui {
 
     // ------------------------------------------------------------------ palette
 
-    static final Color FOND_1 = new Color(0x0F0C29);
-    static final Color FOND_2 = new Color(0x2A2358);
-    static final Color FOND_3 = new Color(0x13112A);
-    static final Color TEXTE = new Color(0xF4F2FF);
-    static final Color DISCRET = new Color(0xA9A6CF);
-    static final Color VIOLET = new Color(0x8B5CF6);
-    static final Color ROSE = new Color(0xEC4899);
-    static final Color CYAN = new Color(0x22D3EE);
-    static final Color VERT = new Color(0x34D399);
-    static final Color ROUGE = new Color(0xFB7185);
-    static final Color AMBRE = new Color(0xFBBF24);
+    static final Color FOND_1 = new Color(0x0D0D14);       // fond de la fenêtre
+    static final Color CARTE = new Color(0x1A1A28);        // fond des cartes
+    static final Color CARTE_CLAIRE = new Color(0x242436); // survol
+    static final Color BORD = new Color(0x34344E);
+    static final Color OMBRE = new Color(0x050508);
+    static final Color TEXTE = new Color(0xF6F6FB);
+    static final Color DISCRET = new Color(0x9C9CB8);
+    static final Color ENCRE = new Color(0x14141C);        // texte posé sur une couleur vive
+
+    static final Color JAUNE = new Color(0xFFD23F);
+    static final Color CORAIL = new Color(0xFF5D73);
+    static final Color CYAN = new Color(0x2DE2D2);
+    static final Color CITRON = new Color(0xA6F04C);
+    static final Color BLEU = new Color(0x5B8CFF);
+    static final Color ORANGE = new Color(0xFF9F43);
+
+    // couleurs "de sens"
+    static final Color VERT = CITRON;   // réussite
+    static final Color ROUGE = CORAIL;  // erreur
+    static final Color AMBRE = ORANGE;  // information
+
+    static final Color[] ARC_EN_CIEL = {JAUNE, CORAIL, CYAN, CITRON, BLEU, ORANGE};
 
     static Color alpha(Color c, int a) {
         return new Color(c.getRed(), c.getGreen(), c.getBlue(), Math.max(0, Math.min(255, a)));
@@ -93,13 +108,24 @@ final class Ui {
                 Math.round(a.getAlpha() + (b.getAlpha() - a.getAlpha()) * t));
     }
 
+    static Color fonce(Color c) {
+        return melange(c, Color.BLACK, 0.45f);
+    }
+
+    /** Texte foncé sur couleur claire, blanc sur couleur foncée. */
+    static Color texteSur(Color fond) {
+        double luminance = 0.299 * fond.getRed() + 0.587 * fond.getGreen() + 0.114 * fond.getBlue();
+        return luminance > 150 ? ENCRE : Color.WHITE;
+    }
+
     // ------------------------------------------------------------------ polices et dessin
 
-    private static final String POLICE = choisirPolice();
+    private static final String POLICE = choisirPolice("Segoe UI", "Inter", "Helvetica Neue", "Arial");
+    private static final String POLICE_TITRE = choisirPolice("Segoe UI Black", "Arial Black", POLICE);
 
-    private static String choisirPolice() {
+    private static String choisirPolice(String... voulues) {
         String[] disponibles = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-        for (String voulue : new String[] {"Segoe UI", "Inter", "Helvetica Neue", "Arial"}) {
+        for (String voulue : voulues) {
             for (String f : disponibles) {
                 if (f.equals(voulue)) {
                     return f;
@@ -111,6 +137,10 @@ final class Ui {
 
     static Font police(int style, float taille) {
         return new Font(POLICE, style, 12).deriveFont(taille);
+    }
+
+    static Font policeTitre(float taille) {
+        return new Font(POLICE_TITRE, Font.BOLD, 12).deriveFont(taille);
     }
 
     /** Copie du Graphics avec l'anticrénelage activé (bords et textes lisses). */
@@ -132,9 +162,9 @@ final class Ui {
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
         SwingUtilities.invokeLater(() -> {
-            UIManager.put("ToolTip.background", FOND_2);
+            UIManager.put("ToolTip.background", CARTE);
             UIManager.put("ToolTip.foreground", TEXTE);
-            UIManager.put("ToolTip.border", BorderFactory.createLineBorder(alpha(VIOLET, 160)));
+            UIManager.put("ToolTip.border", BorderFactory.createLineBorder(JAUNE, 2));
             UIManager.put("ToolTip.font", police(Font.PLAIN, 13));
             creation.run();
         });
@@ -216,7 +246,7 @@ final class Ui {
         JScrollBar barre = sp.getVerticalScrollBar();
         barre.setOpaque(false);
         barre.setUnitIncrement(18);
-        barre.setPreferredSize(new Dimension(10, 0));
+        barre.setPreferredSize(new Dimension(12, 0));
         barre.setUI(new BasicScrollBarUI() {
             @Override
             protected JButton createDecreaseButton(int orientation) {
@@ -239,8 +269,8 @@ final class Ui {
                     return;
                 }
                 Graphics2D g2 = lisse(g);
-                g2.setColor(alpha(Color.WHITE, isThumbRollover() ? 90 : 50));
-                g2.fill(new RoundRectangle2D.Float(r.x + 2, r.y + 2, r.width - 4, r.height - 4, 8, 8));
+                g2.setColor(isThumbRollover() ? JAUNE : BORD);
+                g2.fill(new RoundRectangle2D.Float(r.x + 3, r.y + 2, r.width - 6, r.height - 4, 6, 6));
                 g2.dispose();
             }
 
@@ -261,16 +291,16 @@ final class Ui {
         p.lineTo(cx - taille * 0.12f, cy + taille * 0.32f);
         p.lineTo(cx + taille * 0.45f, cy - taille * 0.3f);
         g2.setColor(couleur);
-        g2.setStroke(new BasicStroke(taille * 0.16f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.setStroke(new BasicStroke(taille * 0.18f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
         g2.draw(p);
     }
 
     static void croix(Graphics2D g2, float cx, float cy, float taille, Color couleur) {
-        float d = taille * 0.32f;
+        float d = taille * 0.3f;
         g2.setColor(couleur);
         g2.setStroke(new BasicStroke(taille * 0.15f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-        g2.draw(new java.awt.geom.Line2D.Float(cx - d, cy - d, cx + d, cy + d));
-        g2.draw(new java.awt.geom.Line2D.Float(cx + d, cy - d, cx - d, cy + d));
+        g2.draw(new Line2D.Float(cx - d, cy - d, cx + d, cy + d));
+        g2.draw(new Line2D.Float(cx + d, cy - d, cx - d, cy + d));
     }
 
     /** Dessine une pastille de texte dont le bord DROIT est en xDroite ; renvoie son bord gauche. */
@@ -278,15 +308,15 @@ final class Ui {
         g2.setFont(police(Font.BOLD, 12));
         FontMetrics fm = g2.getFontMetrics();
         int largeur = fm.stringWidth(texte) + 22;
-        int hauteur = 24;
+        int hauteur = 26;
         int x = xDroite - largeur;
         int y = yCentre - hauteur / 2;
-        g2.setColor(alpha(couleur, 40));
-        g2.fill(new RoundRectangle2D.Float(x, y, largeur, hauteur, hauteur, hauteur));
-        g2.setColor(alpha(couleur, 120));
-        g2.setStroke(new BasicStroke(1f));
-        g2.draw(new RoundRectangle2D.Float(x + 0.5f, y + 0.5f, largeur - 1, hauteur - 1, hauteur, hauteur));
-        g2.setColor(melange(couleur, Color.WHITE, 0.35f));
+        RoundRectangle2D forme = new RoundRectangle2D.Float(x, y, largeur, hauteur, 10, 10);
+        g2.setColor(alpha(couleur, 34));
+        g2.fill(forme);
+        g2.setColor(couleur);
+        g2.setStroke(new BasicStroke(1.5f));
+        g2.draw(forme);
         g2.drawString(texte, x + 11, y + (hauteur - fm.getHeight()) / 2 + fm.getAscent());
         return x;
     }
@@ -306,8 +336,15 @@ final class Ui {
     static BufferedImage icone() {
         BufferedImage img = new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2 = lisse(img.getGraphics());
-        g2.setPaint(new GradientPaint(0, 0, VIOLET, 64, 64, ROSE));
-        g2.fill(new Ellipse2D.Float(2, 2, 60, 60));
+        g2.setColor(OMBRE);
+        g2.fill(new RoundRectangle2D.Float(8, 8, 54, 54, 16, 16));
+        g2.setColor(JAUNE);
+        g2.fill(new RoundRectangle2D.Float(2, 2, 54, 54, 16, 16));
+        g2.setColor(ENCRE);
+        g2.fill(new Ellipse2D.Float(16, 20, 9, 9));
+        g2.fill(new Ellipse2D.Float(33, 20, 9, 9));
+        g2.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+        g2.draw(new java.awt.geom.Arc2D.Float(17, 24, 24, 18, 200, 140, java.awt.geom.Arc2D.OPEN));
         g2.dispose();
         return img;
     }
@@ -359,17 +396,39 @@ final class Ui {
 
     // ------------------------------------------------------------------ fenêtre
 
-    /** Fond en dégradé avec trois halos de couleur qui dérivent lentement. */
+    /** Fond quasi noir, grille de points, et des petites formes colorées qui flottent en tournant. */
     static class Fond extends JPanel {
-        private float t = 0;
+        private final List<float[]> formes = new ArrayList<>(); // x, y, vx, vy, angle, vitesse angle, taille, type, couleur
+        private final Random hasard = new Random(7);
 
         Fond(LayoutManager layout) {
             super(layout);
             setOpaque(true);
-            new Timer(50, e -> {
-                t += 0.015f;
-                repaint();
-            }).start();
+            new Timer(33, e -> avancer()).start();
+        }
+
+        private void avancer() {
+            int w = getWidth();
+            int h = getHeight();
+            if (w == 0) {
+                return;
+            }
+            if (formes.isEmpty()) {
+                for (int i = 0; i < 16; i++) {
+                    formes.add(new float[] {
+                        hasard.nextFloat() * w, hasard.nextFloat() * h,
+                        (hasard.nextFloat() - 0.5f) * 0.5f, (hasard.nextFloat() - 0.5f) * 0.5f,
+                        hasard.nextFloat() * 6.28f, (hasard.nextFloat() - 0.5f) * 0.02f,
+                        14 + hasard.nextFloat() * 22, hasard.nextInt(5), hasard.nextInt(ARC_EN_CIEL.length)
+                    });
+                }
+            }
+            for (float[] f : formes) {
+                f[0] = (f[0] + f[2] + w + 60) % (w + 60);
+                f[1] = (f[1] + f[3] + h + 60) % (h + 60);
+                f[4] += f[5];
+            }
+            repaint();
         }
 
         @Override
@@ -377,19 +436,68 @@ final class Ui {
             Graphics2D g2 = lisse(g);
             int w = getWidth();
             int h = getHeight();
-            g2.setPaint(new LinearGradientPaint(0, 0, w, h, new float[] {0f, 0.55f, 1f},
-                    new Color[] {FOND_1, FOND_2, FOND_3}));
+            g2.setColor(FOND_1);
             g2.fillRect(0, 0, w, h);
-            halo(g2, w * (0.18f + 0.08f * (float) Math.sin(t)), h * (0.22f + 0.1f * (float) Math.cos(t * 0.8)), w * 0.45f, VIOLET, 85);
-            halo(g2, w * (0.88f + 0.06f * (float) Math.cos(t * 0.7)), h * (0.85f + 0.08f * (float) Math.sin(t * 1.1)), w * 0.42f, ROSE, 55);
-            halo(g2, w * (0.78f + 0.1f * (float) Math.sin(t * 0.5)), h * (0.08f + 0.06f * (float) Math.cos(t)), w * 0.3f, CYAN, 40);
+
+            // grille de points
+            g2.setColor(new Color(255, 255, 255, 16));
+            for (int x = 14; x < w; x += 28) {
+                for (int y = 14; y < h; y += 28) {
+                    g2.fillRect(x, y, 2, 2);
+                }
+            }
+
+            // formes flottantes
+            g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            for (float[] f : formes) {
+                Graphics2D g3 = (Graphics2D) g2.create();
+                g3.translate(f[0] - 30, f[1] - 30);
+                g3.rotate(f[4]);
+                g3.setColor(alpha(ARC_EN_CIEL[(int) f[8]], 70));
+                g3.draw(forme((int) f[7], f[6]));
+                g3.dispose();
+            }
+
+            // vignette : les bords sont plus sombres
+            float r = Math.max(w, h) * 0.75f;
+            g2.setPaint(new RadialGradientPaint(new Point2D.Float(w / 2f, h / 2f), r, new float[] {0.4f, 1f},
+                    new Color[] {new Color(0, 0, 0, 0), new Color(0, 0, 0, 150)}));
+            g2.fillRect(0, 0, w, h);
             g2.dispose();
         }
 
-        private static void halo(Graphics2D g2, float x, float y, float r, Color c, int a) {
-            g2.setPaint(new RadialGradientPaint(new Point2D.Float(x, y), r, new float[] {0f, 1f},
-                    new Color[] {alpha(c, a), alpha(c, 0)}));
-            g2.fill(new Ellipse2D.Float(x - r, y - r, r * 2, r * 2));
+        private static Shape forme(int type, float t) {
+            float d = t / 2;
+            switch (type) {
+                case 0:
+                    return new Ellipse2D.Float(-d, -d, t, t);
+                case 1: {
+                    Path2D.Float p = new Path2D.Float();
+                    p.moveTo(0, -d);
+                    p.lineTo(d, d * 0.8f);
+                    p.lineTo(-d, d * 0.8f);
+                    p.closePath();
+                    return p;
+                }
+                case 2: {
+                    Path2D.Float p = new Path2D.Float();
+                    p.moveTo(-d, 0);
+                    p.lineTo(d, 0);
+                    p.moveTo(0, -d);
+                    p.lineTo(0, d);
+                    return p;
+                }
+                case 3:
+                    return new Rectangle2D.Float(-d * 0.8f, -d * 0.8f, t * 0.8f, t * 0.8f);
+                default: {
+                    Path2D.Float p = new Path2D.Float(); // zigzag
+                    p.moveTo(-d, 0);
+                    for (int i = 1; i <= 4; i++) {
+                        p.lineTo(-d + i * t / 4, (i % 2 == 0) ? 0 : -d * 0.5f);
+                    }
+                    return p;
+                }
+            }
         }
     }
 
@@ -410,7 +518,7 @@ final class Ui {
                     fermer();
                 }
             });
-            fond.setBorder(BorderFactory.createLineBorder(alpha(Color.WHITE, 35)));
+            fond.setBorder(BorderFactory.createLineBorder(BORD, 2));
             fond.add(barreDeTitre(titre), BorderLayout.NORTH);
             setContentPane(fond);
             setIconImage(icone());
@@ -440,12 +548,16 @@ final class Ui {
                 @Override
                 protected void paintComponent(Graphics g) {
                     Graphics2D g2 = lisse(g);
-                    g2.setPaint(new GradientPaint(0, 0, VIOLET, 14, 14, ROSE));
-                    g2.fill(new Ellipse2D.Float(0, (getHeight() - 14) / 2f, 14, 14));
+                    float y = (getHeight() - 10) / 2f;
+                    Color[] c = {CORAIL, JAUNE, CITRON};
+                    for (int i = 0; i < 3; i++) {
+                        g2.setColor(c[i]);
+                        g2.fill(new Ellipse2D.Float(i * 15, y, 10, 10));
+                    }
                     g2.dispose();
                 }
             };
-            logo.setPreferredSize(new Dimension(24, 42));
+            logo.setPreferredSize(new Dimension(56, 42));
             JPanel gauche = new JPanel(new BorderLayout());
             gauche.setOpaque(false);
             gauche.add(logo, BorderLayout.WEST);
@@ -508,16 +620,16 @@ final class Ui {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = lisse(g);
             float s = survol.get();
-            g2.setColor(fermeture ? alpha(new Color(0xE11D48), (int) (230 * s)) : alpha(Color.WHITE, (int) (25 * s)));
+            g2.setColor(fermeture ? alpha(CORAIL, (int) (255 * s)) : alpha(Color.WHITE, (int) (25 * s)));
             g2.fillRect(0, 0, getWidth(), getHeight());
             float cx = getWidth() / 2f;
             float cy = getHeight() / 2f;
             if (fermeture) {
-                croix(g2, cx, cy, 22, TEXTE);
+                croix(g2, cx, cy, 22, melange(TEXTE, ENCRE, s));
             } else {
                 g2.setColor(TEXTE);
-                g2.setStroke(new BasicStroke(1.4f));
-                g2.draw(new java.awt.geom.Line2D.Float(cx - 5, cy, cx + 5, cy));
+                g2.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.CAP_ROUND));
+                g2.draw(new Line2D.Float(cx - 5, cy, cx + 5, cy));
             }
             g2.dispose();
         }
@@ -525,15 +637,23 @@ final class Ui {
 
     // ------------------------------------------------------------------ composants
 
-    /** Carte "verre dépoli" : fond translucide, coins arrondis, bord qui peut s'illuminer. */
+    /** Carte sombre avec une ombre dure décalée ; son bord peut s'allumer d'une couleur. */
     static class Carte extends JPanel {
-        private final Anim eclat = new Anim(this, 0, 0.05f);
-        private Color couleurEclat = VIOLET;
+        static final int DECALAGE = 6;
+        private final Anim eclat = new Anim(this, 0, 0.04f);
+        private Color couleurEclat = JAUNE;
 
         Carte(LayoutManager layout) {
             super(layout);
             setOpaque(false);
             setBorder(new EmptyBorder(24, 26, 24, 26));
+        }
+
+        /** L'ombre occupe DECALAGE pixels à droite et en bas : on les ajoute aux marges. */
+        @Override
+        public Insets getInsets() {
+            Insets i = super.getInsets();
+            return new Insets(i.top, i.left, i.bottom + DECALAGE, i.right + DECALAGE);
         }
 
         /** Fait briller le bord de la carte puis s'éteindre doucement. */
@@ -547,42 +667,55 @@ final class Ui {
         protected void paintComponent(Graphics g) {
             Graphics2D g2 = lisse(g);
             float e = eclat.get();
-            RoundRectangle2D forme = new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 1, getHeight() - 1, 26, 26);
-            g2.setColor(alpha(Color.WHITE, 16));
+            int w = getWidth() - DECALAGE;
+            int h = getHeight() - DECALAGE;
+            g2.setColor(e > 0.01f ? melange(OMBRE, fonce(couleurEclat), e) : OMBRE);
+            g2.fill(new RoundRectangle2D.Float(DECALAGE, DECALAGE, w, h, 22, 22));
+            RoundRectangle2D forme = new RoundRectangle2D.Float(1, 1, w - 2, h - 2, 22, 22);
+            g2.setColor(melange(CARTE, couleurEclat, e * 0.12f));
             g2.fill(forme);
-            if (e > 0) {
-                g2.setColor(alpha(couleurEclat, (int) (40 * e)));
-                g2.fill(forme);
-            }
-            g2.setPaint(new GradientPaint(0, 0, alpha(Color.WHITE, 22), 0, getHeight() * 0.5f, alpha(Color.WHITE, 0)));
-            g2.fill(forme);
-            g2.setStroke(new BasicStroke(1f + e * 1.5f));
-            g2.setColor(melange(alpha(Color.WHITE, 36), alpha(couleurEclat, 230), e));
+            g2.setStroke(new BasicStroke(2f));
+            g2.setColor(melange(BORD, couleurEclat, e));
             g2.draw(forme);
             g2.dispose();
         }
     }
 
-    /** Bouton arrondi : dégradé (principal) ou translucide (fantôme), animé au survol. */
+    /** Dessine une forme "en relief" : une base foncée dessous, la face au-dessus, enfoncée de 'enfoncement'. */
+    private static RoundRectangle2D relief(Graphics2D g2, int w, int h, int profondeur, float enfoncement,
+                                           Color face, Color base, Color bord, float arrondi) {
+        g2.setColor(base);
+        g2.fill(new RoundRectangle2D.Float(0, profondeur, w, h - profondeur, arrondi, arrondi));
+        RoundRectangle2D dessus = new RoundRectangle2D.Float(0, enfoncement, w, h - profondeur, arrondi, arrondi);
+        g2.setColor(face);
+        g2.fill(dessus);
+        if (bord != null) {
+            g2.setColor(bord);
+            g2.setStroke(new BasicStroke(2f));
+            g2.draw(new RoundRectangle2D.Float(1, enfoncement + 1, w - 2, h - profondeur - 2, arrondi, arrondi));
+        }
+        return dessus;
+    }
+
+    /** Bouton en relief façon jeu vidéo : il se soulève au survol et s'enfonce au clic. */
     static class Bouton extends JButton {
-        private final Color c1;
-        private final Color c2;
-        private final boolean fantome;
-        private final Anim survol = new Anim(this, 0, 0.2f);
+        private static final int PROFONDEUR = 6;
+        private final Color couleur;
+        private final Anim survol = new Anim(this, 0, 0.25f);
 
-        Bouton(String texte, Color c1, Color c2) {
-            this(texte, c1, c2, false, 14);
+        /** Bouton principal, de la couleur donnée. */
+        Bouton(String texte, Color couleur) {
+            this(texte, couleur, 15);
         }
 
+        /** Bouton secondaire, sombre. */
         static Bouton fantome(String texte, float taille) {
-            return new Bouton(texte, null, null, true, taille);
+            return new Bouton(texte, null, taille);
         }
 
-        private Bouton(String texte, Color c1, Color c2, boolean fantome, float taille) {
+        private Bouton(String texte, Color couleur, float taille) {
             super(texte);
-            this.c1 = c1;
-            this.c2 = c2;
-            this.fantome = fantome;
+            this.couleur = couleur;
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFocusPainted(false);
@@ -590,8 +723,8 @@ final class Ui {
             setFont(police(Font.BOLD, taille));
             setForeground(TEXTE);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            int v = Math.round(taille * 0.75f);
-            setBorder(new EmptyBorder(v, Math.round(taille * 1.5f), v, Math.round(taille * 1.5f)));
+            int v = Math.round(taille * 0.7f);
+            setBorder(new EmptyBorder(v, Math.round(taille * 1.4f), v + PROFONDEUR, Math.round(taille * 1.4f)));
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseEntered(MouseEvent e) {
@@ -617,32 +750,37 @@ final class Ui {
             int h = getHeight();
             float s = isEnabled() ? survol.get() : 0;
             if (!isEnabled()) {
-                opacite(g2, 0.4f);
+                opacite(g2, 0.35f);
             }
-            int dy = getModel().isPressed() ? 1 : 0;
-            RoundRectangle2D forme = new RoundRectangle2D.Float(0.5f, 0.5f + dy, w - 1, h - 1 - dy, h, h);
-            if (fantome) {
-                g2.setColor(alpha(Color.WHITE, (int) (14 + 22 * s)));
-                g2.fill(forme);
-                g2.setColor(alpha(Color.WHITE, (int) (45 + 50 * s)));
-                g2.setStroke(new BasicStroke(1f));
-                g2.draw(forme);
+            boolean presse = getModel().isPressed() && getModel().isArmed();
+            float enfoncement = presse ? PROFONDEUR - 1 : 2 - 2 * s;
+            Color face;
+            Color base;
+            Color bord;
+            Color texte;
+            if (couleur == null) {
+                face = melange(CARTE, CARTE_CLAIRE, s);
+                base = OMBRE;
+                bord = melange(BORD, JAUNE, s);
+                texte = TEXTE;
             } else {
-                g2.setPaint(new GradientPaint(0, 0, melange(c1, Color.WHITE, s * 0.18f), w, h, melange(c2, Color.WHITE, s * 0.18f)));
-                g2.fill(forme);
-                g2.setPaint(new GradientPaint(0, 0, alpha(Color.WHITE, 55), 0, h * 0.6f, alpha(Color.WHITE, 0)));
-                g2.fill(forme);
+                face = melange(couleur, Color.WHITE, s * 0.15f);
+                base = fonce(couleur);
+                bord = null;
+                texte = texteSur(couleur);
             }
+            relief(g2, w, h, PROFONDEUR, enfoncement, face, base, bord, 16);
             g2.setFont(getFont());
             FontMetrics fm = g2.getFontMetrics();
-            g2.setColor(fantome ? melange(DISCRET, TEXTE, 0.5f + s * 0.5f) : Color.WHITE);
+            g2.setColor(texte);
             String t = getText();
-            g2.drawString(t, (w - fm.stringWidth(t)) / 2, (h - fm.getHeight()) / 2 + fm.getAscent() + dy);
+            float hauteurFace = h - PROFONDEUR;
+            g2.drawString(t, (w - fm.stringWidth(t)) / 2f, enfoncement + (hauteurFace - fm.getHeight()) / 2f + fm.getAscent());
             g2.dispose();
         }
     }
 
-    /** Champ de saisie arrondi avec texte d'exemple et bord en dégradé quand il a le focus. */
+    /** Champ de saisie sombre ; son bord s'allume en cyan quand il a le focus. */
     static class Champ extends JTextField {
         private final String exemple;
         private final Anim focus = new Anim(this, 0, 0.2f);
@@ -650,10 +788,10 @@ final class Ui {
         Champ(String exemple) {
             this.exemple = exemple;
             setOpaque(false);
-            setBorder(new EmptyBorder(12, 16, 12, 16));
+            setBorder(new EmptyBorder(13, 16, 13, 16));
             setForeground(TEXTE);
-            setCaretColor(TEXTE);
-            setSelectionColor(alpha(VIOLET, 150));
+            setCaretColor(JAUNE);
+            setSelectionColor(alpha(CYAN, 110));
             setSelectedTextColor(Color.WHITE);
             setFont(police(Font.PLAIN, 15));
             addFocusListener(new FocusAdapter() {
@@ -680,18 +818,16 @@ final class Ui {
             int w = getWidth();
             int h = getHeight();
             float f = focus.get();
-            RoundRectangle2D forme = new RoundRectangle2D.Float(1, 1, w - 2, h - 2, 18, 18);
-            g2.setColor(alpha(isEditable() ? Color.BLACK : Color.WHITE, isEditable() ? 70 : 10));
+            RoundRectangle2D forme = new RoundRectangle2D.Float(1, 1, w - 2, h - 2, 14, 14);
+            g2.setColor(isEditable() ? new Color(0x101018) : CARTE_CLAIRE);
             g2.fill(forme);
-            g2.setStroke(new BasicStroke(1f + f));
-            g2.setPaint(f > 0.01f
-                    ? new GradientPaint(0, 0, alpha(VIOLET, (int) (60 + 195 * f)), w, 0, alpha(CYAN, (int) (60 + 195 * f)))
-                    : new GradientPaint(0, 0, alpha(Color.WHITE, 45), w, 0, alpha(Color.WHITE, 45)));
+            g2.setStroke(new BasicStroke(2f));
+            g2.setColor(melange(BORD, CYAN, f));
             g2.draw(forme);
             if (getText().isEmpty() && exemple != null) {
                 g2.setFont(getFont());
                 FontMetrics fm = g2.getFontMetrics();
-                g2.setColor(alpha(DISCRET, 170));
+                g2.setColor(alpha(DISCRET, 160));
                 g2.drawString(exemple, getInsets().left, (h - fm.getHeight()) / 2 + fm.getAscent());
             }
             g2.dispose();
@@ -699,8 +835,9 @@ final class Ui {
         }
     }
 
-    /** Groupe de pastilles cliquables dont une seule est sélectionnée (comme des boutons radio). */
+    /** Groupe de pastilles en relief dont une seule est sélectionnée (comme des boutons radio). */
     static class Chips extends JPanel {
+        private static final int PROFONDEUR = 4;
         private final List<Chip> chips = new ArrayList<>();
         private int selection = 0;
         private IntConsumer auChangement = i -> { };
@@ -717,7 +854,7 @@ final class Ui {
             chips.get(0).actif.fixer(1);
         }
 
-        /** Couleur propre à chaque pastille (sinon dégradé violet-rose). */
+        /** Couleur propre à chaque pastille (sinon cyan). */
         Chips couleurs(Color... couleurs) {
             for (int i = 0; i < couleurs.length && i < chips.size(); i++) {
                 chips.get(i).couleur = couleurs[i];
@@ -757,9 +894,9 @@ final class Ui {
         private final class Chip extends JComponent {
             private final int index;
             private String texte;
-            private Color couleur;
-            private final Anim survol = new Anim(this, 0, 0.2f);
-            private final Anim actif = new Anim(this, 0, 0.2f);
+            private Color couleur = CYAN;
+            private final Anim survol = new Anim(this, 0, 0.25f);
+            private final Anim actif = new Anim(this, 0, 0.25f);
 
             Chip(int index, String texte) {
                 this.index = index;
@@ -786,7 +923,7 @@ final class Ui {
             @Override
             public Dimension getPreferredSize() {
                 FontMetrics fm = getFontMetrics(police(Font.BOLD, 13));
-                return new Dimension(fm.stringWidth(texte) + 32, 36);
+                return new Dimension(fm.stringWidth(texte) + 30, 36 + PROFONDEUR);
             }
 
             @Override
@@ -796,47 +933,46 @@ final class Ui {
                 int h = getHeight();
                 float a = actif.get();
                 float s = survol.get();
-                RoundRectangle2D forme = new RoundRectangle2D.Float(0.5f, 0.5f, w - 1, h - 1, h, h);
-                g2.setColor(alpha(Color.WHITE, (int) (12 + 16 * s)));
-                g2.fill(forme);
-                g2.setColor(alpha(Color.WHITE, 40));
-                g2.setStroke(new BasicStroke(1f));
-                g2.draw(forme);
-                if (a > 0.01f) {
-                    Graphics2D g3 = (Graphics2D) g2.create();
-                    opacite(g3, a);
-                    if (couleur == null) {
-                        g3.setPaint(new GradientPaint(0, 0, VIOLET, w, h, ROSE));
-                        g3.fill(forme);
-                    } else {
-                        g3.setColor(alpha(couleur, 75));
-                        g3.fill(forme);
-                        g3.setColor(couleur);
-                        g3.setStroke(new BasicStroke(1.5f));
-                        g3.draw(forme);
-                    }
-                    g3.dispose();
-                }
+                // sélectionnée = enfoncée et colorée ; sinon sombre et soulevée
+                float enfoncement = a * (PROFONDEUR - 1) + (1 - a) * (1.5f - 1.5f * s);
+                Color face = melange(melange(CARTE, CARTE_CLAIRE, s), couleur, a);
+                Color base = melange(OMBRE, fonce(couleur), a);
+                Color bord = a > 0.5f ? null : melange(BORD, couleur, s * 0.7f);
+                relief(g2, w, h, PROFONDEUR, enfoncement, face, base, bord, 12);
                 g2.setFont(police(Font.BOLD, 13));
                 FontMetrics fm = g2.getFontMetrics();
-                g2.setColor(melange(DISCRET, Color.WHITE, Math.max(a, s * 0.6f)));
-                g2.drawString(texte, (w - fm.stringWidth(texte)) / 2, (h - fm.getHeight()) / 2 + fm.getAscent());
+                g2.setColor(melange(melange(DISCRET, TEXTE, s), texteSur(couleur), a));
+                float hauteurFace = h - PROFONDEUR;
+                g2.drawString(texte, (w - fm.stringWidth(texte)) / 2f, enfoncement + (hauteurFace - fm.getHeight()) / 2f + fm.getAscent());
                 g2.dispose();
             }
         }
     }
 
-    /** Barre de progression arrondie, remplie d'un dégradé, qui glisse vers sa nouvelle valeur. */
+    /** Barre de progression épaisse, remplie de rayures qui défilent, qui glisse vers sa nouvelle valeur. */
     static class Barre extends JComponent {
         private final Anim valeur = new Anim(this, 0, 0.08f);
+        private float decalage = 0;
+        private Color couleur = CITRON;
 
         Barre() {
-            setPreferredSize(new Dimension(160, 8));
+            setPreferredSize(new Dimension(160, 14));
             setAlignmentX(Component.LEFT_ALIGNMENT);
+            new Timer(40, e -> {
+                decalage = (decalage + 0.8f) % 16;
+                if (valeur.get() > 0) {
+                    repaint();
+                }
+            }).start();
         }
 
         void valeur(float v) {
             valeur.vers(Math.max(0, Math.min(1, v)));
+        }
+
+        void couleur(Color c) {
+            couleur = c;
+            repaint();
         }
 
         @Override
@@ -849,31 +985,49 @@ final class Ui {
             Graphics2D g2 = lisse(g);
             int w = getWidth();
             int h = getHeight();
-            g2.setColor(alpha(Color.WHITE, 22));
-            g2.fill(new RoundRectangle2D.Float(0, 0, w, h, h, h));
+            RoundRectangle2D piste = new RoundRectangle2D.Float(0, 0, w, h, h, h);
+            g2.setColor(new Color(0x101018));
+            g2.fill(piste);
             float rempli = w * valeur.get();
             if (rempli > 1) {
-                g2.setPaint(new GradientPaint(0, 0, VIOLET, w, 0, CYAN));
-                g2.fill(new RoundRectangle2D.Float(0, 0, Math.max(rempli, h), h, h, h));
+                RoundRectangle2D plein = new RoundRectangle2D.Float(0, 0, Math.max(rempli, h), h, h, h);
+                g2.setColor(couleur);
+                g2.fill(plein);
+                Graphics2D g3 = (Graphics2D) g2.create();
+                g3.clip(plein);
+                g3.setColor(alpha(Color.WHITE, 55));
+                for (float x = -h - 16 + decalage; x < rempli + h; x += 16) {
+                    Path2D.Float bande = new Path2D.Float();
+                    bande.moveTo(x, h);
+                    bande.lineTo(x + h, 0);
+                    bande.lineTo(x + h + 7, 0);
+                    bande.lineTo(x + 7, h);
+                    bande.closePath();
+                    g3.fill(bande);
+                }
+                g3.dispose();
             }
+            g2.setColor(BORD);
+            g2.setStroke(new BasicStroke(1.5f));
+            g2.draw(new RoundRectangle2D.Float(0.75f, 0.75f, w - 1.5f, h - 1.5f, h, h));
             g2.dispose();
         }
     }
 
-    /** Étiquette en forme de pilule colorée. */
+    /** Étiquette aux coins arrondis, bord et texte de la même couleur. */
     static class Pastille extends JLabel {
         private Color couleur;
 
         Pastille(String texte, Color couleur) {
             super(texte);
-            setFont(police(Font.BOLD, 12));
+            setFont(police(Font.BOLD, 13));
             setBorder(new EmptyBorder(5, 12, 5, 12));
             couleur(couleur);
         }
 
         void couleur(Color c) {
             couleur = c;
-            setForeground(melange(c, Color.WHITE, 0.4f));
+            setForeground(c);
             repaint();
         }
 
@@ -882,27 +1036,28 @@ final class Ui {
             Graphics2D g2 = lisse(g);
             int w = getWidth();
             int h = getHeight();
-            RoundRectangle2D forme = new RoundRectangle2D.Float(0.5f, 0.5f, w - 1, h - 1, h, h);
-            g2.setColor(alpha(couleur, 45));
+            RoundRectangle2D forme = new RoundRectangle2D.Float(1, 1, w - 2, h - 2, 12, 12);
+            g2.setColor(alpha(couleur, 30));
             g2.fill(forme);
-            g2.setColor(alpha(couleur, 130));
+            g2.setColor(couleur);
+            g2.setStroke(new BasicStroke(1.5f));
             g2.draw(forme);
             g2.dispose();
             super.paintComponent(g);
         }
     }
 
-    /** Bandeau de message (succès / erreur / info) qui apparaît en glissant puis disparaît. */
+    /** Bandeau de message (succès / erreur / info) qui arrive en rebondissant puis disparaît. */
     static class Banniere extends JComponent {
         enum Type { SUCCES, ERREUR, INFO }
 
-        private final Anim apparition = new Anim(this, 0, 0.16f);
+        private final Anim apparition = new Anim(this, 0, 0.13f);
         private final Timer masquage = new Timer(3000, e -> cacher());
         private String texte = "";
         private Type type = Type.INFO;
 
         Banniere() {
-            setPreferredSize(new Dimension(200, 48));
+            setPreferredSize(new Dimension(200, 54));
             setAlignmentX(Component.LEFT_ALIGNMENT);
             masquage.setRepeats(false);
         }
@@ -942,53 +1097,61 @@ final class Ui {
             };
             Graphics2D g2 = lisse(g);
             opacite(g2, a);
-            g2.translate(0, (1 - a) * 10);
-            int w = getWidth();
-            int h = getHeight();
-            RoundRectangle2D forme = new RoundRectangle2D.Float(0.5f, 0.5f, w - 1, h - 1, 16, 16);
-            g2.setColor(alpha(c, 38));
+            // petit rebond : on dépasse légèrement puis on revient
+            float rebond = (float) Math.sin(a * Math.PI) * 4;
+            g2.translate(0, (1 - a) * 18 - rebond);
+            int w = getWidth() - 5;
+            int h = getHeight() - 9;
+            g2.setColor(OMBRE);
+            g2.fill(new RoundRectangle2D.Float(5, 5, w, h, 16, 16));
+            RoundRectangle2D forme = new RoundRectangle2D.Float(1, 1, w - 2, h - 2, 16, 16);
+            g2.setColor(CARTE);
             g2.fill(forme);
-            g2.setColor(alpha(c, 150));
-            g2.setStroke(new BasicStroke(1f));
+            g2.setColor(c);
+            g2.setStroke(new BasicStroke(2f));
             g2.draw(forme);
 
             float cx = 26;
             float cy = h / 2f;
-            g2.setColor(c);
-            g2.fill(new Ellipse2D.Float(cx - 12, cy - 12, 24, 24));
+            g2.fill(new RoundRectangle2D.Float(cx - 13, cy - 13, 26, 26, 9, 9));
             switch (type) {
-                case SUCCES -> coche(g2, cx, cy, 14, FOND_1);
-                case ERREUR -> croix(g2, cx, cy, 20, FOND_1);
+                case SUCCES -> coche(g2, cx, cy, 14, ENCRE);
+                case ERREUR -> croix(g2, cx, cy, 22, ENCRE);
                 case INFO -> {
-                    g2.setColor(FOND_1);
-                    g2.fill(new Ellipse2D.Float(cx - 1.6f, cy - 6.5f, 3.2f, 3.2f));
-                    g2.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-                    g2.draw(new java.awt.geom.Line2D.Float(cx, cy - 0.5f, cx, cy + 5.5f));
+                    g2.setColor(ENCRE);
+                    g2.fill(new Ellipse2D.Float(cx - 2, cy - 7.5f, 4, 4));
+                    g2.setStroke(new BasicStroke(3.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    g2.draw(new Line2D.Float(cx, cy - 0.5f, cx, cy + 6));
                 }
             }
             g2.setFont(police(Font.BOLD, 14));
             FontMetrics fm = g2.getFontMetrics();
             g2.setColor(TEXTE);
-            g2.drawString(tronquer(texte, fm, w - 64), 50, (h - fm.getHeight()) / 2 + fm.getAscent());
+            g2.drawString(tronquer(texte, fm, w - 70), 52, (h - fm.getHeight()) / 2 + fm.getAscent());
             g2.dispose();
         }
     }
 
-    /** Titre dont les lettres sont remplies d'un dégradé violet - rose - cyan. */
-    static class TitreDegrade extends JComponent {
+    /** Gros titre : chaque lettre a sa couleur et ondule doucement, avec une ombre dure. */
+    static class Titre extends JComponent {
         private final String texte;
         private final Font font;
+        private float t = 0;
 
-        TitreDegrade(String texte, float taille) {
+        Titre(String texte, float taille) {
             this.texte = texte;
-            this.font = police(Font.BOLD, taille);
+            this.font = policeTitre(taille);
             setAlignmentX(Component.LEFT_ALIGNMENT);
+            new Timer(40, e -> {
+                t += 0.09f;
+                repaint();
+            }).start();
         }
 
         @Override
         public Dimension getPreferredSize() {
             FontMetrics fm = getFontMetrics(font);
-            return new Dimension(fm.stringWidth(texte) + 4, fm.getHeight());
+            return new Dimension(fm.stringWidth(texte) + 10, fm.getHeight() + 10);
         }
 
         @Override
@@ -1001,9 +1164,19 @@ final class Ui {
             Graphics2D g2 = lisse(g);
             g2.setFont(font);
             FontMetrics fm = g2.getFontMetrics();
-            int w = Math.max(1, fm.stringWidth(texte));
-            g2.setPaint(new LinearGradientPaint(0, 0, w, 0, new float[] {0f, 0.5f, 1f}, new Color[] {VIOLET, ROSE, CYAN}));
-            g2.drawString(texte, 0, fm.getAscent());
+            float x = 0;
+            int couleur = 0;
+            for (int i = 0; i < texte.length(); i++) {
+                String lettre = String.valueOf(texte.charAt(i));
+                float y = fm.getAscent() + 4 + (float) Math.sin(t + i * 0.55) * 3;
+                if (!lettre.isBlank()) {
+                    g2.setColor(OMBRE);
+                    g2.drawString(lettre, x + 4, y + 4);
+                    g2.setColor(ARC_EN_CIEL[couleur++ % ARC_EN_CIEL.length]);
+                    g2.drawString(lettre, x, y);
+                }
+                x += fm.stringWidth(lettre);
+            }
             g2.dispose();
         }
     }

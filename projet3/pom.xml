@@ -12,6 +12,8 @@
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Classe lancée par "mvn exec:java" ; remplaçable avec -Dexec.mainClass=chatbot.ChatFenetre -->
+        <exec.mainClass>chatbot.Main</exec.mainClass>
     </properties>
 
     <dependencies>
@@ -30,9 +32,6 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
-                <configuration>
-                    <mainClass>chatbot.Main</mainClass>
-                </configuration>
             </plugin>
         </plugins>
     </build>

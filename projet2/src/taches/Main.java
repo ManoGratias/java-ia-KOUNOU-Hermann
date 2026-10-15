@@ -1,6 +1,8 @@
 package taches;
 
+import java.io.Console;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
@@ -15,7 +17,7 @@ public class Main {
     private static final Path FICHIER = Path.of("taches.txt");
 
     private static final GestionnaireTaches gestionnaire = new GestionnaireTaches();
-    private static final Scanner scanner = new Scanner(System.in);
+    private static final Scanner scanner = new Scanner(System.in, encodageClavier());
     private static boolean entreeFermee = false;
 
     public static void main(String[] args) {
@@ -162,5 +164,14 @@ public class Main {
         List<Tache> retard = gestionnaire.enRetard(LocalDate.now());
         System.out.println(retard.size() + " tâche(s) en retard :");
         lister(retard);
+    }
+
+    /**
+     * Encodage du clavier. Sous Windows, la console envoie les accents en cp850 alors que Java lit
+     * en UTF-8 par défaut : sans ça, "Café" devient "Caf?". Hors console (entrée redirigée), on garde le défaut.
+     */
+    private static Charset encodageClavier() {
+        Console console = System.console();
+        return console != null ? console.charset() : Charset.defaultCharset();
     }
 }
